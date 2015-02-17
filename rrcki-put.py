@@ -13,13 +13,13 @@ COPY_TIMEOUT=3600
 COPY_RETRIES=5
 COPY_COMMAND='lcg-cp'
 COPY_ARGS='-b -U srmv2'
-COPY_SETUP='/share/wn-client/setup.sh'
-COPY_PREFIX='srm://uct2-dc1.uchicago.edu:8443/srm/managerv2?SFN='
+COPY_SETUP='setup.sh'
+COPY_PREFIX='srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
 PNFSROOT='/pnfs/uchicago.edu'
 PERM_DIR=0775
 PERM_FILE=0664
 
-LOGFILE='/var/log/lsm/lsm-put.log'
+LOGFILE='/srv/lsm/log/rrcki-put.log'
 
 def log(msg):
     try:

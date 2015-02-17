@@ -11,5 +11,3 @@ export X509_CERT_DIR=/etc/grid-security/certificates
 . /cvmfs/atlas.cern.ch/repo/sw/ddm/latest/setup.sh
 export RUCIO_ACCOUNT=ruslan
 . /cvmfs/atlas.cern.ch/repo/sw/ddm/rucio-clients/latest/setup.sh
-
-lcg-cp $@

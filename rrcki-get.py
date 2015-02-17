@@ -11,13 +11,15 @@ import sys, os, stat, time, zlib, hashlib
 #md5->hashlib
 
 #Tunable parameters
-PCACHE_TIMEOUT=5380
-PCACHE_RETRIES=0
-PCACHE_MAX_SPACE="80%"
+COPY_TIMEOUT=3600
+COPY_RETRIES=5
+COPY_COMMAND='lcg-cp'
+COPY_ARGS='-b -U srmv2'
+COPY_SETUP='setup.sh'
+COPY_PREFIX='srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
+PNFSROOT='srm://'
 PERM_DIR=0775
 PERM_FILE=0664
-PNFSROOT='srm://'
-PANDA_SITE_NAME='ANALY_RRC-KI-HPC'
 
 LOGFILE='/srv/lsm/log/rrcki-get.log'
 
@@ -114,11 +116,18 @@ if len(args) != 2:
     sys.exit(1)
 
 src_url, dest = args
+
 index = src_url.find(PNFSROOT)
 if index >= 0:
     src = src_url[index:]
 else:
     fail(202, "Invalid command")
+
+sfn = src_url.split('srm://sdrm.t1.grid.kiae.ru')[1]
+src = COPY_PREFIX + sfn
+
+
+
 
 ## Check for 'file exists'
 if os.path.isfile(dest):
@@ -163,8 +172,8 @@ if not os.path.exists(dirname):
 if not os.path.exists(dirname):
     fail(206, "Cannot create %s" % dirname)
 
-cmd = "sh lcgcp.sh -b -D srmv2 -S ATLASSCRATCHDISK"
-cmd += " '%s' %s 2>&1" % (src, dest)
+cmd = "sh setup.sh | lcg-cp -b -D srmv2 -S ATLASSCRATCHDISK"
+cmd += " '%s' file://%s 2>&1" % (src, dest)
 
 t = Timer()
 p = os.popen(cmd)
