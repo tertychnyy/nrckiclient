@@ -1,4 +1,5 @@
 #!/bin/bash
+source /srv/lsm/.venv/rrcki-sendjob/bin/activate
 . setup.sh
 
 files=$(dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK $1 | grep 'srm://')
@@ -10,4 +11,5 @@ do
     dest=/srv/lsm/data/$1/$fname
     echo $dest
     python rrcki-get.py $src $dest
+    python rrcki-ddm-put.py $dest
 done
