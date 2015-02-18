@@ -14,14 +14,14 @@ import sys, os, stat, time, zlib, hashlib
 COPY_TIMEOUT=3600
 COPY_RETRIES=5
 COPY_COMMAND='lcg-cp'
-COPY_ARGS='-b -U srmv2'
+COPY_ARGS='-b -D srmv2 -S ATLASSCRATCHDISK'
 COPY_SETUP='setup.sh'
 COPY_PREFIX='srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
 PNFSROOT='srm://'
 PERM_DIR=0775
 PERM_FILE=0664
 
-LOGFILE='/srv/lsm/log/rrcki-get.log'
+LOGFILE='/srv/lsm/log/get.log'
 
 class Timer:
      def __init__(self):
@@ -172,7 +172,7 @@ if not os.path.exists(dirname):
 if not os.path.exists(dirname):
     fail(206, "Cannot create %s" % dirname)
 
-cmd = "sh setup.sh | lcg-cp -b -D srmv2 -S ATLASSCRATCHDISK"
+cmd = "sh %s | %s %s" % (COPY_SETUP, COPY_COMMAND, COPY_ARGS)
 cmd += " '%s' file://%s 2>&1" % (src, dest)
 
 t = Timer()
