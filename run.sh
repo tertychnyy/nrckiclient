@@ -45,10 +45,10 @@ put(){
     fi
 
     #copy to local temp dir
-    python $BIN_HOME/ddm-get.py db $src $wd/$fname
+    python $BIN_HOME/ddm-get.py db $src $DATA_HOME/$wd/$fname
 
     #put to dataset
-    python $BIN_HOME/put.py -t ATLASSCRATCHDISK db $wd/$fname $dataset
-    rm -R $wd
+    python $BIN_HOME/put.py -t ATLASSCRATCHDISK db $DATA_HOME/$wd/$fname $dataset
+    rm -R $DATA_HOME/$wd
 }
 put /df.py
