@@ -19,7 +19,7 @@ PNFSROOT='/pnfs/uchicago.edu'
 PERM_DIR=0775
 PERM_FILE=0664
 
-LOGFILE='/srv/lsm/log/rrcki-put.log'
+LOGFILE='log/put.log'
 
 def log(msg):
     try:
@@ -38,41 +38,6 @@ def fail(errorcode=200,msg=None):
     print msg
     log(msg)
     sys.exit(errorcode)
-
-token=None
-size=None
-checksumtype=None
-checksumval=None
-
-log(' '.join(sys.argv))
-
-args = sys.argv[1:]
-while args and args[0].startswith('-'):
-    arg = args.pop(0)
-    val = args.pop(0)
-    if arg=='-t':
-        token = val
-    elif arg=='--size' or arg=='-s':
-        size = int(val)
-    elif arg=='--checksum' or arg=='-c':
-        if ':' in val:
-            checksumtype, checksumval = val.split(':')
-        else:
-            checksumtype = "md5"
-        # Only Adler32's supported in dCache
-        if not checksumtype.startswith("ad"):
-            fail(202, "Unsupported checksum type %s" % checksumtype)
-
-if len(args) != 2:
-    fail(202, "Invalid command")
-
-src, dest_url = args
-
-index = dest_url.find(PNFSROOT)
-if index < 0:
-    fail(206, "Invalid path %s"%dest_url)
-
-dest=dest_url[index:]
 
 def get_dcache_size(fname):
     data=get_level2(fname,'l')
@@ -108,6 +73,42 @@ def get_level2(fname, attr):
                 return v
     return None
 
+def getSURL(src, dataset):
+    return
+
+token=None
+size=None
+checksumtype=None
+checksumval=None
+
+log(' '.join(sys.argv))
+
+args = sys.argv[1:]
+while args and args[0].startswith('-'):
+    arg = args.pop(0)
+    val = args.pop(0)
+    if arg=='-t':
+        token = val
+    elif arg=='--size' or arg=='-s':
+        size = int(val)
+    elif arg=='--checksum' or arg=='-c':
+        if ':' in val:
+            checksumtype, checksumval = val.split(':')
+        else:
+            checksumtype = "md5"
+        # Only Adler32's supported in dCache
+        if not checksumtype.startswith("ad"):
+            fail(202, "Unsupported checksum type %s" % checksumtype)
+
+if len(args) != 2:
+    fail(202, "Invalid command")
+
+src, dataset = args
+
+dest = getSURL(src, dataset)
+
+
+
 if os.path.isfile(dest):
     ### * 211 - File already exist and is different (size/checksum).
     ### * 212 - File already exist and is the same as the source (same size/checksum)
@@ -124,31 +125,10 @@ if os.path.isfile(dest):
         except:
             fchecksumval = "UNKNOWN"
     if fchecksumval != checksumval or fsize != size:
-        fail(211, "%s size:%s %s, checksum: %s %s"% (dest, fsize,size,
+        fail(211, "%s size:%s %s, checksum: %s %s"% (src, fsize,size,
                                                  fchecksumval,checksumval))
     else:
         fail(212, "%s: File exists" % dest)
-
-
-if os.path.isdir(dest) and not dest.endswith('/'):
-    dest += '/'
-if dest.endswith('/'):
-    basename = src.split('/')[-1]
-    dest += basename
-dest_url = COPY_PREFIX+dest
-
-dirname, filename = os.path.split(dest)
-if not os.path.exists(dirname):
-    try:
-        os.makedirs(dirname, PERM_DIR)
-        os.chmod(dirname, PERM_DIR)
-    except:
-        ##Might already exist, created by another process
-        exc, msg, tb = sys.exc_info()
-        log("mkdir: %s" % msg)
-
-if not os.path.exists(dirname):
-    fail(206, "Cannot create %s" % dirname)
 
 if token:
     token_arg = '-S %s' % token
@@ -160,7 +140,7 @@ if COPY_SETUP:
     cmd = ". %s;" % COPY_SETUP
 
 cmd += "%s %s %s %s %s" % (
-    COPY_COMMAND, COPY_ARGS, token_arg, src, dest_url)
+    COPY_COMMAND, COPY_ARGS, token_arg, src, dest)
 
 for retry in xrange(COPY_RETRIES+1):
     log("executing %s retry %s" % (cmd, retry))
@@ -178,22 +158,6 @@ for retry in xrange(COPY_RETRIES+1):
         time.sleep(15)
     else:
         break
-
-if not os.path.exists(dest):
-    fail(201, "Output file does not exist")
-
-if exit_status:
-    if os.path.exists(dest):
-        try:
-            os.unlink(dest)
-        except:
-            pass
-    fail(201, "Copy command exited with status %s"%exit_status)
-
-try:
-    os.chmod(dest, PERM_FILE)
-except:
-    pass
 
 if size:
     try:
@@ -219,9 +183,9 @@ if checksumval:
             pass
         fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
 
-log("%s OK" % dest_url)
+log("%s OK" % dest)
 
-print dest_url
+print dest
 
 if size:
     print "size", size

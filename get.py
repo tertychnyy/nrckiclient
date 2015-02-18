@@ -21,7 +21,7 @@ PNFSROOT='srm://'
 PERM_DIR=0775
 PERM_FILE=0664
 
-LOGFILE='/srv/lsm/log/get.log'
+LOGFILE='log/get.log'
 
 class Timer:
      def __init__(self):

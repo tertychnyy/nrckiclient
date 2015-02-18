@@ -3,7 +3,7 @@ import dropbox
 import time
 import sys
 
-LOGFILE='log/ddm-put.log'
+LOGFILE='log/ddm-get.log'
 
 def log(msg):
     try:
@@ -23,7 +23,7 @@ def fail(errorcode=200,msg=None):
     log(msg)
     sys.exit(errorcode)
 
-def send(type, src, dest):
+def get(type, src, dest):
     if type == 'db':
         # Get your app key and secret from the Dropbox developer website
         app_key = 'APP_KEY'
@@ -44,17 +44,10 @@ def send(type, src, dest):
         client = dropbox.client.DropboxClient(access_token)
         print 'linked account: ', client.account_info()
 
-        f = open(src, 'rb')
-        response = client.put_file(dest, f)
-        print 'uploaded: ', response
-
-        folder_metadata = client.metadata('/')
-        print 'metadata: ', folder_metadata
-
-        f, metadata = client.get_file_and_metadata(dest)
-        #out = open('magnum-opus.txt', 'wb')
-        #out.write(f.read())
-        #out.close()
+        out = open(dest, 'wb')
+        f, metadata = client.get_file_and_metadata(src)
+        with f:
+            out.write(f.read())
         print metadata
 
 log(' '.join(sys.argv))
@@ -65,6 +58,6 @@ if len(args) != 3:
     fail(202, "Invalid command")
     sys.exit(1)
 
-src, dest = args
+type, src, dest = args
 
-send('db', src, dest)
+get(type, src, dest)
