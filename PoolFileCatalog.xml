@@ -1,0 +1,21 @@
+<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>
+<!-- ATLAS file meta-data catalog -->
+<!DOCTYPE POOLFILECATALOG SYSTEM \"InMemory\">
+<POOLFILECATALOG>
+  <File ID=\"87b8e0d0-69d0-4acf-bbde-8cecd63c5c72\">
+    <logical>
+      <lfn name=\"6cfda546-f206-4b20-b516-0e6bf624bf17.job.log.tgz\"/>
+    </logical>
+    <metadata att_name=\"surl\" att_value=\"srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN=/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio/panda/41/b7/6cfda546-f206-4b20-b516-0e6bf624bf17.job.log.tgz\"/>
+    <metadata att_name=\"fsize\" att_value=\"18324\"/>
+    <metadata att_name=\"adler32\" att_value=\"e420d908\"/>
+  </File>
+  <File ID=\"7563c3f1-5c26-40a8-ab0f-df966dee6f4c\">
+    <logical>
+      <lfn name=\"stageout.job.output.lib.txt\"/>
+    </logical>
+    <metadata att_name=\"surl\" att_value=\"srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN=/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio/NULL/8c/73/stageout.job.output.lib.txt\"/>
+    <metadata att_name=\"fsize\" att_value=\"40\"/>
+    <metadata att_name=\"adler32\" att_value=\"239e0e2e\"/>
+  </File>
+</POOLFILECATALOG>

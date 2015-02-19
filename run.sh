@@ -59,3 +59,10 @@ put(){
 }
 #put /df.py user.ruslan.test.dataset
 get panda.destDB.7af9eb41-4147-4ef6-908a-f930127840dc
+
+#AdderAtlasPlugin._updateOutputs
+#registerAPI = Register2.Register(tmpDest,force_backend=self.ddmBackEnd)
+#out = registerAPI.registerFilesInDatasets(tmpIdMap)
+
+#@param dataset: is a dictionary with a dataset name as the key and a list of its files, each being a dictionary.
+#        {'dsn': [ 'guid', 'lfn', 'size', 'checksum', 'surl']}

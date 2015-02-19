@@ -143,7 +143,7 @@ fileOT.destinationDBlock = 'user.ruslan.test.%s' % commands.getoutput('uuidgen')
 fileOT.destinationSE = job.destinationSE
 fileOT.dataset = job.destinationDBlock
 fileOT.type = 'output'
-fileOT.scope = 'panda'
+fileOT.scope = 'user.ruslan'
 fileOT.GUID = commands.getoutput('uuidgen')
 master.fileList.append(fileOT)
 
