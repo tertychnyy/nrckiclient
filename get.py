@@ -21,7 +21,7 @@ PNFSROOT='srm://'
 PERM_DIR=0775
 PERM_FILE=0664
 
-LOGFILE='log/get.log'
+LOGFILE='/srv/lsm/log/get.log'
 
 class Timer:
      def __init__(self):
@@ -126,9 +126,6 @@ else:
 sfn = src_url.split('srm://sdrm.t1.grid.kiae.ru')[1]
 src = COPY_PREFIX + sfn
 
-
-
-
 ## Check for 'file exists'
 if os.path.isfile(dest):
     ### * 211 - File already exist and is different (size/checksum).
@@ -224,3 +221,4 @@ if checksumval:
         fail(205, "Checksum mismatch %s!=%s"%(fchecksumval, checksumval))
 
 log("0 OK")
+

@@ -3,7 +3,7 @@ import dropbox
 import time
 import sys
 
-LOGFILE='log/ddm-put.log'
+LOGFILE='/srv/lsm/log/ddm-put.log'
 
 def log(msg):
     try:
@@ -61,7 +61,7 @@ log(' '.join(sys.argv))
 
 args = sys.argv[1:]
 
-if len(args) != 3:
+if len(args) != 2:
     fail(202, "Invalid command")
     sys.exit(1)
 

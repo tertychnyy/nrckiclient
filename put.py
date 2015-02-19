@@ -19,7 +19,7 @@ PNFSROOT='/pnfs/uchicago.edu'
 PERM_DIR=0775
 PERM_FILE=0664
 
-LOGFILE='log/put.log'
+LOGFILE='/srv/lsm/log/put.log'
 
 def log(msg):
     try:

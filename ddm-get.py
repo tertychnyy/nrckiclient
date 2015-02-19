@@ -3,7 +3,7 @@ import dropbox
 import time
 import sys
 
-LOGFILE='log/ddm-get.log'
+LOGFILE='/srv/lsm/log/ddm-get.log'
 
 def log(msg):
     try:
