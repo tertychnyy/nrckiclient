@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from DDM import UserSE, GridSE
 
@@ -23,12 +24,13 @@ class UserIF:
         os.mkdir(tmphome)
 
         for src in files:
-            fname = file.split('/')[-1]
+            fname = src.split('/')[-1]
             tmpfile = os.path.join(tmphome, fname)
             fromSE.get(src, tmpfile)
             toSE.put(tmpfile, os.path.join('/', dataset, fname))
 
-        os.rmdir(tmphome)
+        #os.rmdir(tmphome)
+        shutil.rmtree(tmphome)
         return
 
 # Singleton

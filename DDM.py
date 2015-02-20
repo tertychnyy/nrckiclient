@@ -94,7 +94,12 @@ class GridSE:
         self.myenv = ast.literal_eval(env)
 
     def get(self, src, dest):
-        os.system('utils/get.py %s %s' % (src, dest))
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+        out = proc.communicate('python %s/utils/get.py %s %s' % (BIN_HOME, src, dest))
+        #print out
 
     def put(self, src, dest):
-        os.system('utils/put.py %s %s' % (src, dest))
+        #os.system('utils/put.py %s %s' % (src, dest))
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+        out = proc.communicate('python %s/utils/put.py %s %s' % (BIN_HOME, src, dest))
+        #print out
