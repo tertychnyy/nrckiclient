@@ -27,7 +27,7 @@ class UserIF:
             fname = src.split('/')[-1]
 
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
-            fprops = proc.communicate("dq2-ls -f %s | grep %s" % (dataset, fname)).split('\t')
+            fprops = proc.communicate("dq2-ls -f %s | grep %s" % (dataset, fname))[0].split('\t')
             fsize = int(fprops[-1])
             fsum = fprops[-2]
 
