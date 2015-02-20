@@ -89,7 +89,7 @@ class GridSE:
     def __init__(self):
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]
-        env.split('\n')[-1]
+        env = env.split('\n')[-1]
         import ast
         self.myenv = ast.literal_eval(env)
 

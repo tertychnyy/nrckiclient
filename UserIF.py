@@ -16,9 +16,8 @@ class UserIF:
         fromSE = GridSE()
         toSE = UserSE()
 
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        files = proc.communicate("dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK %s | grep 'srm://'" % dataset, env=fromSE.myenv)
-        print files
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
+        files = proc.communicate("dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK %s | grep 'srm://'" % dataset)[0].split('\n')[:-1]
 
         tmphome = "%s/%s" % (DATA_HOME, dataset)
         os.mkdir(tmphome)
