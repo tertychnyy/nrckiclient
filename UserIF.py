@@ -1,9 +1,6 @@
-#!/usr/bin/python
-
-import os, commands
-import sys
+import os
+import subprocess
 from DDM import UserSE, GridSE
-from taskbuffer.JobSpec import JobSpec
 
 
 VENV_HOME = '/srv/lsm/.venv/rrcki-sendjob'
@@ -19,7 +16,8 @@ class UserIF:
         fromSE = GridSE()
         toSE = UserSE()
 
-        files = fromSE.proc.communicate("dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK %s | grep 'srm://'" % dataset)
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        files = proc.communicate("dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK %s | grep 'srm://'" % dataset, env=fromSE.myenv)
         print files
 
         tmphome = "%s/%s" % (DATA_HOME, dataset)

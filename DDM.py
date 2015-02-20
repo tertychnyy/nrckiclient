@@ -1,12 +1,10 @@
 import os
 import time
 import sys
-import commands
 import subprocess
 
 import dropbox
 
-from utils import get, put
 
 BIN_HOME='/srv/lsm/rrcki-sendjob'
 LOGFILE='/srv/lsm/log/ddm.log'
@@ -89,11 +87,14 @@ class UserSE:
 
 class GridSE:
     def __init__(self):
-        self.proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        print self.proc.communicate(". %s/setup.sh" % BIN_HOME)
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]
+        env.split('\n')[-1]
+        import ast
+        self.myenv = ast.literal_eval(env)
 
     def get(self, src, dest):
-        get(src, dest)
+        os.system('utils/get.py %s %s' % (src, dest))
 
     def put(self, src, dest):
-        put(src, dest)
+        os.system('utils/put.py %s %s' % (src, dest))
