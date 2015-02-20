@@ -93,9 +93,9 @@ class GridSE:
         import ast
         self.myenv = ast.literal_eval(env)
 
-    def get(self, src, dest):
+    def get(self, src, dest, fsize, fsum):
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('python %s/utils/get.py %s %s' % (BIN_HOME, src, dest))
+        out = proc.communicate('python %s/utils/get.py --size %s %s %s' % (BIN_HOME, fsize, src, dest))
         #print out
 
     def put(self, src, dest):

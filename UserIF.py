@@ -25,8 +25,14 @@ class UserIF:
 
         for src in files:
             fname = src.split('/')[-1]
+
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
+            fprops = proc.communicate("dq2-ls -f %s | grep %s" % (dataset, fname)).split('\t')
+            fsize = int(fprops[-1])
+            fsum = fprops[-2]
+
             tmpfile = os.path.join(tmphome, fname)
-            fromSE.get(src, tmpfile)
+            fromSE.get(src, tmpfile, fsize, fsum)
             toSE.put(tmpfile, os.path.join('/', dataset, fname))
 
         #os.rmdir(tmphome)
