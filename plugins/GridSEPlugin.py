@@ -1,7 +1,7 @@
 import subprocess
 
-from DDM import BIN_HOME
-from DDM import SEPlugin
+from plugins.DDM import BIN_HOME
+from plugins.DDM import SEPlugin
 
 class GridSEPlugin(SEPlugin):
     def __init__(self):

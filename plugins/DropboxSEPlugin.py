@@ -1,5 +1,5 @@
 import dropbox
-from DDM import SEPlugin
+from plugins.DDM import SEPlugin
 
 class DropboxSEPlugin(SEPlugin):
     def __init__(self):
