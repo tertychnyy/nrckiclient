@@ -49,24 +49,24 @@ class SEFactory:
     def __init__(self):
         self.se = SEPlugin()
 
-    def getSE(self, label):
+    def getSE(self, label, params=None):
         se = self.se
         try:
             if label not in ['dropbox', 'grid']:
                 raise AttributeError("Attribute 'label' error: Not found in list")
 
             if label == 'dropbox':
-                se = DropboxSEPlugin()
+                se = DropboxSEPlugin(params)
 
             if label == 'grid':
-                se = GridSEPlugin()
+                se = GridSEPlugin(params)
         except Exception:
             log(Exception.message)
 
         return se
 
 class SEPlugin(object):
-    def __init__(self):
+    def __init__(self, params=None):
         print 'SEPlugin initialization'
 
     def get(self, src, dest, fsize, fsum):

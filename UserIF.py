@@ -13,12 +13,12 @@ class UserIF:
         self.sefactory = SEFactory()
 
     #get dataset from grid
-    def getDataset(self, dataset):
+    def getDataset(self, dataset, auth_key):
         #get dataset by name
 
         #se initialization
-        fromSE = self.sefactory.getSE('grid')
-        toSE = self.sefactory.getSE('dropbox')
+        fromSE = self.sefactory.getSE('grid', params=None)
+        toSE = self.sefactory.getSE('dropbox', params={'auth_key': auth_key})
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
         files = proc.communicate("dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK %s | grep 'srm://'" % dataset)[0].split('\n')[:-1]
@@ -47,5 +47,9 @@ userIF = UserIF()
 del UserIF
 
 #Web interface methods
-def getDataset(req, dataset):
-    userIF.getDataset(dataset)
+def getDataset(req, dataset, auth_key):
+
+    routing_key = 'method.getdataset'
+    message = "'%s %s'" % (dataset, auth_key)
+    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    out = proc.communicate('python %s/mq/send.py %s %s' % (BIN_HOME, routing_key, message))

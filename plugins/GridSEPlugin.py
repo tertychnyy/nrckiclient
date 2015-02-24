@@ -1,9 +1,9 @@
 import subprocess
 
-from plugins.DDM import BIN_HOME
+BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
 class GridSEPlugin():
-    def __init__(self):
+    def __init__(self, params=None):
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]
         env = env.split('\n')[-1]
