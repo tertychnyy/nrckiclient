@@ -15,7 +15,8 @@ COPY_TIMEOUT=3600
 COPY_RETRIES=5
 COPY_COMMAND='lcg-cp'
 COPY_ARGS='-b -D srmv2 -S ATLASSCRATCHDISK'
-COPY_PREFIX='srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
+COPY_PREFIX=':8443/srm/managerv2?SFN='
+SRM_PREFIX = 'srm://sdrm.t1.grid.kiae.ru'
 PNFSROOT='srm://'
 PERM_DIR=0775
 PERM_FILE=0664
@@ -122,8 +123,8 @@ if index >= 0:
 else:
     fail(202, "Invalid command")
 
-sfn = src_url.split('srm://sdrm.t1.grid.kiae.ru')[1]
-src = COPY_PREFIX + sfn
+sfn = src_url.split(SRM_PREFIX)[1]
+src = SRM_PREFIX + COPY_PREFIX + sfn
 
 ## Check for 'file exists'
 if os.path.isfile(dest):

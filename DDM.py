@@ -51,26 +51,29 @@ class SEFactory:
 
     def getSE(self, label):
         se = self.se
-        if label not in ['dropbox', 'grid']:
-            raise AttributeError("Attribute 'label' error: Not found in list")
-
         try:
+            if label not in ['dropbox', 'grid']:
+                raise AttributeError("Attribute 'label' error: Not found in list")
+
             if label == 'dropbox':
                 se = DropboxSEPlugin()
 
             if label == 'grid':
                 se = GridSEPlugin()
         except Exception:
-            log('Error: Cannot initialize plugins. Default plugin returned')
+            log(Exception.message)
 
         return se
+
 class SEPlugin:
     def __init__(self):
         print 'SEPlugin initialization'
 
     def get(self, src, dest, fsize, fsum):
         print 'SEPlugin.get: Not implemented'
+        raise NotImplementedError("SEPlugin.get not implemented")
 
     def put(self, src, dest):
         print 'SEPlugin.put: Not implemented'
+        raise NotImplementedError("SEPlugin.put not implemented")
 
