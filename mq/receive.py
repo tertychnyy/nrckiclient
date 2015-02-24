@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pika
 import sys
-from UserIF import UserIF
+from ui.UserIF import UserIF
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
