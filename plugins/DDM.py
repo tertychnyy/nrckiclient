@@ -65,7 +65,7 @@ class SEFactory:
 
         return se
 
-class SEPlugin:
+class SEPlugin(object):
     def __init__(self):
         print 'SEPlugin initialization'
 
@@ -76,4 +76,3 @@ class SEPlugin:
     def put(self, src, dest):
         print 'SEPlugin.put: Not implemented'
         raise NotImplementedError("SEPlugin.put not implemented")
-
