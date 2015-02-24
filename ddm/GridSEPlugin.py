@@ -1,6 +1,5 @@
 import subprocess
-
-from ddm.DDM import BIN_HOME
+BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
 class GridSEPlugin():
     def __init__(self, params=None):

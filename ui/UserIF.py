@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 from ddm.DDM import SEFactory
+from mq.MQ import MQ
 
 
 VENV_HOME = '/srv/lsm/.venv/rrcki-sendjob'
@@ -48,8 +49,7 @@ del UserIF
 
 #Web interface methods
 def getDataset(req, dataset, auth_key):
-
     routing_key = 'method.getdataset'
     message = "'%s %s'" % (dataset, auth_key)
-    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    out = proc.communicate('python %s/mq/send.py %s %s' % (BIN_HOME, routing_key, message))
+
+    MQ.sendMessage(message, routing_key)
