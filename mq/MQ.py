@@ -1,6 +1,7 @@
 import pika
+import threading
 
-from ui.UserIF import UserIF
+BIN_HOME = '/Users/it/PycharmProjects/rrcki-sendjob'
 
 class MQ:
     def __init__(self):
@@ -16,7 +17,7 @@ class MQ:
         channel, connection = self.getClient('localhost')
 
         channel.exchange_declare(exchange='lsm',
-                                 type='direct')
+                                 type='topic')
 
         channel.basic_publish(exchange='lsm',
                               routing_key=routing_key,
@@ -27,10 +28,13 @@ class MQ:
         connection.close()
 
     def startConsumer(self, binding_keys):
-        channel, connection = self.getClient('localhost')
+        print 'startConsumer'
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
+                host='localhost'))
+        channel = connection.channel()
 
         channel.exchange_declare(exchange='lsm',
-                                 type='direct')
+                                     type='topic')
 
         result = channel.queue_declare(exclusive=True)
         queue_name = result.method.queue
@@ -46,6 +50,7 @@ class MQ:
         def callback(ch, method, properties, body):
             dataset, auth_key = body.split(' ')
 
+            from ui.UserIF import UserIF
             userif = UserIF()
             userif.getDataset(dataset, auth_key)
 
@@ -55,3 +60,7 @@ class MQ:
         channel.basic_consume(callback, queue=queue_name)
 
         channel.start_consuming()
+
+    def startConsumerThread(self, keys):
+        t1 = threading.Thread(target=self.startConsumer, args=(keys))
+        t1.start()
