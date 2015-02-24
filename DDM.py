@@ -1,10 +1,8 @@
 import os
 import time
 import sys
-import subprocess
-
-import dropbox
-
+from plugins.DropboxSEPlugin import DropboxSEPlugin
+from plugins.GridSEPlugin import GridSEPlugin
 
 BIN_HOME='/srv/lsm/rrcki-sendjob'
 LOGFILE='/srv/lsm/log/ddm.log'
@@ -47,59 +45,32 @@ def getSURL(self, scope, lfn):
         hash_hex = hash.hexdigest()[:6]
         return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
-class UserSE:
+class SEFactory:
     def __init__(self):
-        print 'UserSE initialization'
-        self.client = self.getClient()
+        self.se = SEPlugin()
 
-    def getClient(self):
-        # Get your app key and secret from the Dropbox developer website
-        app_key = 'APP_KEY'
-        app_secret = 'APP_SECRET'
+    def getSE(self, label):
+        se = self.se
+        if label not in ['dropbox', 'grid']:
+            raise AttributeError("Attribute 'label' error: Not found in list")
 
-        flow = dropbox.client.DropboxOAuth2FlowNoRedirect(app_key, app_secret)
+        try:
+            if label == 'dropbox':
+                se = DropboxSEPlugin()
 
-        # Have the user sign in and authorize this token
-        authorize_url = flow.start()
-        print '1. Go to: ' + authorize_url
-        print '2. Click "Allow" (you might have to log in first)'
-        print '3. Copy the authorization code.'
-        code = raw_input("Enter the authorization code here: ").strip()
+            if label == 'grid':
+                se = GridSEPlugin()
+        except Exception:
+            log('Error: Cannot initialize plugins. Default plugin returned')
 
-        # This will fail if the user enters an invalid authorization code
-        access_token, user_id = flow.finish(code)
-        return dropbox.client.DropboxClient(access_token)
-
-    def get(self, src, dest):
-        #get file from dropbox to local se
-        out = open(dest, 'wb')
-        f, metadata = self.client.get_file_and_metadata(src)
-        with f:
-            out.write(f.read())
-        print metadata
-
-    def put(self, src, dest):
-        #put file from local se to dropbox
-        f = open(src, 'rb')
-        response = self.client.put_file(dest, f)
-        print 'uploaded: ', response
-
-
-class GridSE:
+        return se
+class SEPlugin:
     def __init__(self):
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]
-        env = env.split('\n')[-1]
-        import ast
-        self.myenv = ast.literal_eval(env)
+        print 'SEPlugin initialization'
 
     def get(self, src, dest, fsize, fsum):
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('python %s/utils/get.py --size %s --checksum %s %s %s' % (BIN_HOME, fsize, fsum, src, dest))
-        #print out
+        print 'SEPlugin.get: Not implemented'
 
     def put(self, src, dest):
-        #os.system('utils/put.py %s %s' % (src, dest))
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('python %s/utils/put.py %s %s' % (BIN_HOME, src, dest))
-        #print out
+        print 'SEPlugin.put: Not implemented'
+

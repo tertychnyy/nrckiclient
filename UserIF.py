@@ -1,7 +1,7 @@
 import os
 import shutil
 import subprocess
-from DDM import UserSE, GridSE
+from DDM import SEFactory
 
 
 VENV_HOME = '/srv/lsm/.venv/rrcki-sendjob'
@@ -10,12 +10,15 @@ DATA_HOME = '/srv/lsm/data'
 
 class UserIF:
     def __init__(self):
-        self.buffer = None
+        self.sefactory = SEFactory()
 
     #get dataset from grid
     def getDataset(self, dataset):
-        fromSE = GridSE()
-        toSE = UserSE()
+        #get dataset by name
+
+        #se initialization
+        fromSE = self.sefactory.getSE('grid')
+        toSE = self.sefactory.getSE('dropbox')
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
         files = proc.communicate("dq2-ls -f -p -L RRC-KI-T1_SCRATCHDISK %s | grep 'srm://'" % dataset)[0].split('\n')[:-1]
