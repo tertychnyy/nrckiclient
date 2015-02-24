@@ -1,9 +1,8 @@
 import subprocess
 
 from plugins.DDM import BIN_HOME
-from plugins.DDM import SEPlugin
 
-class GridSEPlugin(SEPlugin):
+class GridSEPlugin():
     def __init__(self):
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]

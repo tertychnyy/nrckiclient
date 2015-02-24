@@ -70,9 +70,7 @@ class SEPlugin(object):
         print 'SEPlugin initialization'
 
     def get(self, src, dest, fsize, fsum):
-        print 'SEPlugin.get: Not implemented'
         raise NotImplementedError("SEPlugin.get not implemented")
 
     def put(self, src, dest):
-        print 'SEPlugin.put: Not implemented'
         raise NotImplementedError("SEPlugin.put not implemented")

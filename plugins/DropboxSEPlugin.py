@@ -1,7 +1,6 @@
 import dropbox
-from plugins.DDM import SEPlugin
 
-class DropboxSEPlugin(SEPlugin):
+class DropboxSEPlugin():
     def __init__(self):
         print 'UserSE initialization'
         self.client = self.getClient()
