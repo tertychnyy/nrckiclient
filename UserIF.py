@@ -1,7 +1,7 @@
 import os
 import shutil
 import subprocess
-from DDM import SEFactory
+from plugins.DDM import SEFactory
 
 
 VENV_HOME = '/srv/lsm/.venv/rrcki-sendjob'
