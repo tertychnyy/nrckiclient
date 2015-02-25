@@ -5,16 +5,26 @@
 #
 # lsm-put [-t token] [--size N] [--checksum csum]
 
+#lcg-cp --verbose --vo atlas -b --srm-timeout=3600 --connect-timeout=300 --sendreceive-timeout=3600 -U srmv2 -S ATLASSCRATCHDISK fil
+#e:///s/ls2/home/users/poyda/testpilot/Panda_Pilot_32495_1423052812/PandaJob_66_1423052815/stageout.job.output.lib.txt srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN=/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio/NULL/8c/73/stageout.j
+#ob.output.lib.txt
+
+
 import sys, os, stat, time
 from timed_command import timed_command
 
 #Tunable parameters
+from ddm.DDM import SITE_PREFIX
+from ddm.DDM import SITE_DATA_HOME
+from utils.get import adler32
+
 COPY_TIMEOUT=3600
 COPY_RETRIES=5
 COPY_COMMAND='lcg-cp'
-COPY_ARGS='-b -U srmv2'
+COPY_ARGS='--verbose --vo atlas -b --srm-timeout=3600 --connect-timeout=300 --sendreceive-timeout=3600 -U srmv2'
 COPY_SETUP='setup.sh'
-COPY_PREFIX='srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
+COPY_PREFIX=':8443/srm/managerv2?SFN='
+SRM_PREFIX = 'srm://sdrm.t1.grid.kiae.ru'
 PNFSROOT='/pnfs/uchicago.edu'
 PERM_DIR=0775
 PERM_FILE=0664
@@ -39,42 +49,32 @@ def fail(errorcode=200,msg=None):
     log(msg)
     sys.exit(errorcode)
 
-def get_dcache_size(fname):
-    data=get_level2(fname,'l')
-    if data:
-        return int(data)
-    else:
-        return None
+def getChecksum(surl):
+    cmd = 'lcg-get-checksum -b -T srmv2 --connect-timeout=300 --sendreceive-timeout=3600'
+    cmd += ' %s' % surl
+    p = os.popen(cmd)
+    output = p.read()
+    return 'ad:'.join(output.split('\t')[0])
 
-def get_dcache_checksum(fname):
-    data=get_level2(fname,'c')
-    if not data:
-        return None
-    if ':' in data:
-        data = data.split(':')[1]
-    return data.lower()
+def getSURL(scope, lfn):
+        #get full surl
+        # /<site_prefix>/<space_token>/rucio/<scope>/md5(<scope>:<lfn>)[0:2]/md5(<scope:lfn>)[2:4]/<lfn>
+        try:
+            # for python 2.6
+            import hashlib
+            hash = hashlib.md5()
+        except:
+            # for python 2.4
+            import md5
+            hash = md5.new()
 
-def get_level2(fname, attr):
-    level2 = "%s/.(use)(2)(%s)" % os.path.split(fname)
-    if not os.path.exists(level2):
-        return None
-    try:
-        f= open(level2)
-        lines = f.readlines()
-        f.close()
-    except:
-        return None
-    tok = lines[1].split(';')
-    if tok[0].startswith(':'):
-        tok[0]=tok[0][1:]
-        for t in tok:
-            a,v=t.split("=")
-            if a==attr:
-                return v
-    return None
+        correctedscope = "/".join(scope.split('.'))
+        hash.update('%s:%s' % (scope, lfn))
+        hash_hex = hash.hexdigest()[:6]
+        return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
-def getSURL(src, dataset):
-    return
+def register():
+
 
 token=None
 size=None
@@ -104,31 +104,27 @@ if len(args) != 2:
     fail(202, "Invalid command")
 
 src, dataset = args
+fname = src.split('/')[-1]
+fsize = int(os.path.getsize(src))
+fsum = adler32(src)
+dest = getSURL('user.ruslan', fname)
 
-dest = getSURL(src, dataset)
 
-
-
-if os.path.isfile(dest):
+"""
+if os.path.isfile(src):
     ### * 211 - File already exist and is different (size/checksum).
     ### * 212 - File already exist and is the same as the source (same size/checksum)
-    fsize = None
-    if size:
-        try:
-            fsize = get_dcache_size(dest)
-        except:
-            fsize = "UNKNOWN"
     fchecksumval = None
     if checksumval:
         try:
-            fchecksumval = get_dcache_checksum(dest)
+            fchecksumval = getChecksum(dest)
         except:
             fchecksumval = "UNKNOWN"
-    if fchecksumval != checksumval or fsize != size:
-        fail(211, "%s size:%s %s, checksum: %s %s"% (src, fsize,size,
-                                                 fchecksumval,checksumval))
+    if fchecksumval != checksumval:
+        fail(211, "%s checksum: %s %s"% (src, fchecksumval,checksumval))
     else:
         fail(212, "%s: File exists" % dest)
+"""
 
 if token:
     token_arg = '-S %s' % token
@@ -136,15 +132,12 @@ else:
     token_arg= ''
 
 cmd = ''
-if COPY_SETUP:
-    cmd = ". %s;" % COPY_SETUP
-
-cmd += "%s %s %s %s %s" % (
+cmd += "%s %s %s file://%s %s 2>&1" % (
     COPY_COMMAND, COPY_ARGS, token_arg, src, dest)
-
+"""
 for retry in xrange(COPY_RETRIES+1):
     log("executing %s retry %s" % (cmd, retry))
-    exit_status, time_used, cmd_out, cmd_err = timed_command(cmd,COPY_TIMEOUT)
+    exit_status, time_used, cmd_out, cmd_err = timed_command(cmd, COPY_TIMEOUT)
     # lcg-cp does not return error codes, and on a successful transfer it
     # prints a stray newline to stdout - anything other than whitespace
     # indicates an error
@@ -159,33 +152,24 @@ for retry in xrange(COPY_RETRIES+1):
     else:
         break
 
-if size:
-    try:
-        fsize = get_dcache_size(dest)
-    except:
-        fsize = "UNKNOWN"
-    if size != fsize:
-        try:
-            os.unlink(dest)
-        except:
-            pass
-        fail(204, "Size mismatch %s!=%s"%(fsize,size))
-
 if checksumval:
     try:
-        fchecksumval = get_dcache_checksum(dest)
+        fchecksumval = getChecksum(dest)
     except:
         fchecksumval = "UNKNOWN"
     if fchecksumval != checksumval:
-        try:
-            os.unlink(dest)
-        except:
-            pass
         fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
+"""
+print cmd
+print fname
+print dest
+print fsize
+print fsum
+#register(fname, dest, fsize, fsum)
 
 log("%s OK" % dest)
 
-print dest
+print dataset
 
 if size:
     print "size", size

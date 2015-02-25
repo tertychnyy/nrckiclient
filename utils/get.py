@@ -14,6 +14,7 @@ import sys, os, stat, time, zlib, hashlib
 COPY_TIMEOUT=3600
 COPY_RETRIES=5
 COPY_COMMAND='lcg-cp'
+COPY_SETUP='setup.sh'
 COPY_ARGS='-b -D srmv2 -S ATLASSCRATCHDISK'
 COPY_PREFIX=':8443/srm/managerv2?SFN='
 SRM_PREFIX = 'srm://sdrm.t1.grid.kiae.ru'

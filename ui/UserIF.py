@@ -31,4 +31,4 @@ def getDataset(req, dataset, auth_key):
     userIF.getDataset(dataset, auth_key)
 
 def putDataset(req, file, dataset, auth_key):
-    userIF.getDataset(file, dataset, auth_key)
+    userIF.putDataset(file, dataset, auth_key)
