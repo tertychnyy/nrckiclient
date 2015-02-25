@@ -1,32 +1,9 @@
-import os
-import time
-import sys
 from ddm.DropboxSEPlugin import DropboxSEPlugin
 from ddm.GridSEPlugin import GridSEPlugin
 
 BIN_HOME='/srv/lsm/rrcki-sendjob'
-LOGFILE='/srv/lsm/log/ddm.log'
 SITE_PREFIX = 'srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
 SITE_DATA_HOME = '/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio'
-
-
-def log(self, msg):
-        try:
-            f = open(LOGFILE, 'a')
-            f.write("%s %s\n" % (time.ctime(), msg))
-            f.close()
-            os.chmod(LOGFILE, 0666)
-        except:
-            pass
-
-def fail(self, errorcode=200, msg=None):
-    if msg:
-        msg='%s %s'%(errorcode, msg)
-    else:
-        msg=str(errorcode)
-    print msg
-    log(msg)
-    sys.exit(errorcode)
 
 def getSURL(self, scope, lfn):
         #get full surl
@@ -61,7 +38,7 @@ class SEFactory:
             if label == 'grid':
                 se = GridSEPlugin(params)
         except Exception:
-            log(Exception.message)
+            print Exception.message
 
         return se
 

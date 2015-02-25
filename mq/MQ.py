@@ -1,5 +1,6 @@
 import pika
 import threading
+from ui.UserIF import UserIF
 
 BIN_HOME = '/Users/it/PycharmProjects/rrcki-sendjob'
 
@@ -14,7 +15,7 @@ class MQ:
         channel = connection.channel()
         return channel, connection
 
-    def sengMessage(self, message, routing_key):
+    def sendMessage(self, message, routing_key):
         channel, connection = self.getClient(self.host)
 
         channel.exchange_declare(exchange=self.exchange,
@@ -29,10 +30,7 @@ class MQ:
         connection.close()
 
     def startConsumer(self, binding_keys):
-        print 'startConsumer'
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
-                host=self.host))
-        channel = connection.channel()
+        channel, connection = self.getClient(self.host)
 
         channel.exchange_declare(exchange=self.exchange,
                                      type='topic')
@@ -51,7 +49,6 @@ class MQ:
         def callback(ch, method, properties, body):
             dataset, auth_key = body.split(' ')
 
-            from ui.UserIF import UserIF
             userif = UserIF()
             userif.getDataset(dataset, auth_key)
 

@@ -3,7 +3,6 @@ import shutil
 import subprocess
 from ddm.DDM import SEFactory
 
-
 VENV_HOME = '/srv/lsm/.venv/rrcki-sendjob'
 BIN_HOME = '/srv/lsm/rrcki-sendjob'
 DATA_HOME = '/srv/lsm/data'
@@ -43,8 +42,8 @@ class UserIF:
         return
 
 # Singleton
-userIF = UserIF()
-del UserIF
+#userIF = UserIF()
+#del UserIF
 
 #Web interface methods
 def getDataset(req, dataset, auth_key):
