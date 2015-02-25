@@ -1,6 +1,6 @@
 import pika
 import threading
-from ui.UserIF import UserIF
+from ui.Actions import *
 
 BIN_HOME = '/Users/it/PycharmProjects/rrcki-sendjob'
 
@@ -25,7 +25,7 @@ class MQ:
                               routing_key=routing_key,
                               body=message,
                               properties=pika.BasicProperties(
-                                 delivery_mode = 2, # make message persistent
+                                 delivery_mode=2, # make message persistent
                               ))
         connection.close()
 
@@ -50,10 +50,9 @@ class MQ:
             print body
             dataset, auth_key = body.split('&')
 
-            userif = UserIF()
-            userif.getDataset(dataset, auth_key)
+            getDataset(dataset, auth_key)
 
-            ch.basic_ack(delivery_tag = method.delivery_tag)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
         channel.basic_qos(prefetch_count=1)
         channel.basic_consume(callback, queue=queue_name)
