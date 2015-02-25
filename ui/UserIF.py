@@ -49,7 +49,7 @@ class UserIF:
 def getDataset(req, dataset, auth_key):
     from mq.MQ import MQ
     routing_key = 'method.getdataset'
-    message = "'%s %s'" % (dataset, auth_key)
+    message = "%s&%s" % (dataset, auth_key)
 
     mq = MQ(host='localhost', exchange='lsm')
     mq.sendMessage(message, routing_key)

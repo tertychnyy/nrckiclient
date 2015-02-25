@@ -24,10 +24,9 @@ def getSURL(self, scope, lfn):
 
 class SEFactory:
     def __init__(self):
-        self.se = SEPlugin()
+        print 'SEFactory initialization'
 
     def getSE(self, label, params=None):
-        se = self.se
         try:
             if label not in ['dropbox', 'grid']:
                 raise AttributeError("Attribute 'label' error: Not found in list")
@@ -35,8 +34,11 @@ class SEFactory:
             if label == 'dropbox':
                 se = DropboxSEPlugin(params)
 
-            if label == 'grid':
+            elif label == 'grid':
                 se = GridSEPlugin(params)
+
+            else:
+                se = SEPlugin()
         except Exception:
             print Exception.message
 

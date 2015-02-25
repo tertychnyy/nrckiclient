@@ -47,7 +47,8 @@ class MQ:
                                routing_key=key)
 
         def callback(ch, method, properties, body):
-            dataset, auth_key = body.split(' ')
+            print body
+            dataset, auth_key = body.split('&')
 
             userif = UserIF()
             userif.getDataset(dataset, auth_key)
