@@ -4,8 +4,9 @@ import threading
 BIN_HOME = '/Users/it/PycharmProjects/rrcki-sendjob'
 
 class MQ:
-    def __init__(self):
-        print 'MQ initialization'
+    def __init__(self, host='localhost', exchange='default'):
+        self.exchange = exchange
+        self.host = host
 
     def getClient(self, server):
         connection = pika.BlockingConnection(pika.ConnectionParameters(
@@ -14,12 +15,12 @@ class MQ:
         return channel, connection
 
     def sengMessage(self, message, routing_key):
-        channel, connection = self.getClient('localhost')
+        channel, connection = self.getClient(self.host)
 
-        channel.exchange_declare(exchange='lsm',
+        channel.exchange_declare(exchange=self.exchange,
                                  type='topic')
 
-        channel.basic_publish(exchange='lsm',
+        channel.basic_publish(exchange=self.exchange,
                               routing_key=routing_key,
                               body=message,
                               properties=pika.BasicProperties(
@@ -30,10 +31,10 @@ class MQ:
     def startConsumer(self, binding_keys):
         print 'startConsumer'
         connection = pika.BlockingConnection(pika.ConnectionParameters(
-                host='localhost'))
+                host=self.host))
         channel = connection.channel()
 
-        channel.exchange_declare(exchange='lsm',
+        channel.exchange_declare(exchange=self.exchange,
                                      type='topic')
 
         result = channel.queue_declare(exclusive=True)
@@ -43,7 +44,7 @@ class MQ:
             raise AttributeError('No keys for queue')
 
         for key in binding_keys:
-            channel.queue_bind(exchange='lsm',
+            channel.queue_bind(exchange=self.exchange,
                                queue=queue_name,
                                routing_key=key)
 

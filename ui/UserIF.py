@@ -52,4 +52,5 @@ def getDataset(req, dataset, auth_key):
     routing_key = 'method.getdataset'
     message = "'%s %s'" % (dataset, auth_key)
 
-    MQ.sendMessage(message, routing_key)
+    mq = MQ(host='localhost', exchange='lsm')
+    mq.sendMessage(message, routing_key)
