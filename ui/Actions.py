@@ -37,3 +37,23 @@ def getDataset(dataset, auth_key):
     #os.rmdir(tmphome)
     shutil.rmtree(tmphome)
     return
+
+def putDataset(file, dataset, auth_key):
+    #put file into dataset
+    sefactory = getSEFactory()
+
+    #se initialization
+    toSE = sefactory.getSE('grid', params=None)
+    fromSE = sefactory.getSE('dropbox', params={'auth_key': auth_key})
+
+    tmphome = "%s/%s" % (DATA_HOME, dataset)
+    os.mkdir(tmphome)
+
+    fname = file.split('/')[-1]
+    tmpfile = os.path.join(tmphome, fname)
+
+    fromSE.get(file, tmpfile)
+    toSE.put(tmpfile, dataset)
+
+    shutil.rmtree(tmphome)
+    return

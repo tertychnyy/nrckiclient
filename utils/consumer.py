@@ -28,5 +28,11 @@ if __name__ == '__main__':
 
     keys = sys.argv[1:]
 
-    mq = MQ(host='localhost', exchange='lsm')
-    mq.startConsumer(binding_keys=keys)
+    if len(keys) == 1 and keys[0] == 'method.getdataset':
+        mq = MQ(host='localhost', exchange='lsm')
+        mq.startGetDatasetConsumer()
+
+    if len(keys) == 1 and keys[0] == 'method.putdataset':
+        mq = MQ(host='localhost', exchange='lsm')
+        mq.startPutDatasetConsumer()
+

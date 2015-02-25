@@ -29,7 +29,9 @@ class MQ:
                               ))
         connection.close()
 
-    def startConsumer(self, binding_keys):
+    def startGetDatasetConsumer(self):
+        binding_keys = ['method.getdataset']
+
         channel, connection = self.getClient(self.host)
 
         channel.exchange_declare(exchange=self.exchange,
@@ -59,6 +61,34 @@ class MQ:
 
         channel.start_consuming()
 
-    def startConsumerThread(self, keys):
-        t1 = threading.Thread(target=self.startConsumer, args=(keys))
-        t1.start()
+    def startPutDatasetConsumer(self):
+        binding_keys = ['method.putdataset']
+
+        channel, connection = self.getClient(self.host)
+
+        channel.exchange_declare(exchange=self.exchange,
+                                     type='topic')
+
+        result = channel.queue_declare(exclusive=True)
+        queue_name = result.method.queue
+
+        if not binding_keys:
+            raise AttributeError('No keys for queue')
+
+        for key in binding_keys:
+            channel.queue_bind(exchange=self.exchange,
+                               queue=queue_name,
+                               routing_key=key)
+
+        def callback(ch, method, properties, body):
+            print body
+            file, dataset, auth_key = body.split('&')
+
+            putDataset(file, dataset, auth_key)
+
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+
+        channel.basic_qos(prefetch_count=1)
+        channel.basic_consume(callback, queue=queue_name)
+
+        channel.start_consuming()
