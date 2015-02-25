@@ -18,10 +18,9 @@ class DropboxSEPlugin():
         #print '2. Click "Allow" (you might have to log in first)'
         #print '3. Copy the authorization code.'
         #code = raw_input("Enter the authorization code here: ").strip()
-        code = auth_key
 
         # This will fail if the user enters an invalid authorization code
-        access_token, user_id = flow.finish(code)
+        access_token, user_id = flow.finish(auth_key)
         return dropbox.client.DropboxClient(access_token)
 
     def get(self, src, dest):
