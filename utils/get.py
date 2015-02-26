@@ -79,147 +79,148 @@ def fail(errorcode=200,msg=None):
     log(msg)
     sys.exit(errorcode)
 
-token=None
-size=None
-checksumtype=None
-checksumval=None
-guid=None
-sessid="%s.%s" % ( int(time.time()), os.getpid() )
+if __name__ == '__main__':
+    token=None
+    size=None
+    checksumtype=None
+    checksumval=None
+    guid=None
+    sessid="%s.%s" % ( int(time.time()), os.getpid() )
 
-log(' '.join(sys.argv))
+    log(' '.join(sys.argv))
 
-args = sys.argv[1:]
-while args and args[0].startswith('-'):
-    arg = args.pop(0)
-    val = args.pop(0)
-    if arg=='-t':
-        token = val
-    elif arg=='--size' or arg=='-s':
-        size = int(val)
-    elif arg=='--guid' or arg=='-g':
-        guid = val
-    elif arg=='--checksum' or arg=='-c':
-        if ':' in val:
-            checksumtype, checksumval = val.split(':')
+    args = sys.argv[1:]
+    while args and args[0].startswith('-'):
+        arg = args.pop(0)
+        val = args.pop(0)
+        if arg=='-t':
+            token = val
+        elif arg=='--size' or arg=='-s':
+            size = int(val)
+        elif arg=='--guid' or arg=='-g':
+            guid = val
+        elif arg=='--checksum' or arg=='-c':
+            if ':' in val:
+                checksumtype, checksumval = val.split(':')
+            else:
+                checksumtype = "md5"
+                checksumval = val
+            checksumval = checksumval.lower()
+            if checksumtype.startswith('md5'):
+                checksumfunc = md5sum
+            elif checksumtype.startswith('ad'):
+                checksumfunc = adler32
+            else:
+                fail(202, "Unsupported checksum type %s" % checksumtype)
+
+    if len(args) != 2:
+        fail(202, "Invalid command")
+        sys.exit(1)
+
+    src_url, dest = args
+
+    index = src_url.find(PNFSROOT)
+    if index >= 0:
+        src = src_url[index:]
+    else:
+        fail(202, "Invalid command")
+
+    sfn = src_url.split(SRM_PREFIX)[1]
+    src = SRM_PREFIX + COPY_PREFIX + sfn
+
+    ## Check for 'file exists'
+    if os.path.isfile(dest):
+        ### * 211 - File already exist and is different (size/checksum).
+        ### * 212 - File already exist and is the same as the source (same size/checksum)
+        fsize = None
+        if size:
+            try:
+                fsize = os.stat(dest)[stat.ST_SIZE]
+            except:
+                fsize = "UNKNOWN"
+        fchecksumval = None
+        if checksumval:
+            t = Timer()
+            try:
+                fchecksumval = checksumfunc(dest)
+                log("local checksum took %s seconds for %s byte file,  %.2f b/s"
+                    % (t,fsize, fsize/float(t)) )
+            except Exception,e:
+                fchecksumval = "UNKNOWN"
+                log("%s failed with: %s" % (checksumfunc, e) )
+        if fchecksumval != checksumval or fsize != size:
+            fail(211, "%s size:%s %s, checksum: %s %s"%
+                 (dest, fsize, size, fchecksumval, checksumval))
         else:
-            checksumtype = "md5"
-            checksumval = val
-        checksumval = checksumval.lower()
-        if checksumtype.startswith('md5'):
-            checksumfunc = md5sum
-        elif checksumtype.startswith('ad'):
-            checksumfunc = adler32
-        else:
-            fail(202, "Unsupported checksum type %s" % checksumtype)
+            fail(212, "%s: File exists" % dest)
 
-if len(args) != 2:
-    fail(202, "Invalid command")
-    sys.exit(1)
+    if os.path.isdir(dest) and not dest.endswith('/'):
+        dest += '/'
+    if dest.endswith('/'):
+        basename = src.split('/')[-1]
+        dest += basename
 
-src_url, dest = args
+    dirname, filename = os.path.split(dest)
+    if not os.path.exists(dirname):
+        try:
+            os.makedirs(dirname,PERM_DIR)
+        except:
+            ##Might already exist, created by another process
+            pass
 
-index = src_url.find(PNFSROOT)
-if index >= 0:
-    src = src_url[index:]
-else:
-    fail(202, "Invalid command")
+    if not os.path.exists(dirname):
+        fail(206, "Cannot create %s" % dirname)
 
-sfn = src_url.split(SRM_PREFIX)[1]
-src = SRM_PREFIX + COPY_PREFIX + sfn
+    cmd = "%s %s" % (COPY_COMMAND, COPY_ARGS)
+    cmd += " '%s' file://%s 2>&1" % (src, dest)
 
-## Check for 'file exists'
-if os.path.isfile(dest):
-    ### * 211 - File already exist and is different (size/checksum).
-    ### * 212 - File already exist and is the same as the source (same size/checksum)
-    fsize = None
+    t = Timer()
+    p = os.popen(cmd)
+    output = p.read()
+    if output:
+        log(output)
+    status = p.close()
+    log("transfer took %s seconds for a %s byte file,  %.2f b/s"
+        % (t,size, size/float(t)) )
+
+    if status:
+        ##Transfer failed.  Could retry, but that's already
+        ## done inside of pcache
+        if os.path.exists(dest):
+            try:
+                os.unlink(dest)
+            except:
+                pass
+        fail(201, "Copy command failed")
+
+    if not os.path.exists(dest):
+        fail(201, "Copy command failed")
+
+    try:
+        os.chmod(dest, PERM_FILE)
+    except:
+        pass
+
+    ## Verify size/checksum if asked for
+    ### XXXXX TODO move this to pcache
     if size:
         try:
             fsize = os.stat(dest)[stat.ST_SIZE]
         except:
             fsize = "UNKNOWN"
-    fchecksumval = None
+        if size != fsize:
+            fail(204, "Size mismatch %s!=%s"%(fsize,size))
+
     if checksumval:
         t = Timer()
         try:
             fchecksumval = checksumfunc(dest)
-            log("local checksum took %s seconds for %s byte file,  %.2f b/s"
-                % (t,fsize, fsize/float(t)) )
+            log("local checksum took %s seconds for %s byte file,  %.2f b/s" % (t,fsize, fsize/float(t)) )
         except Exception,e:
             fchecksumval = "UNKNOWN"
             log("%s failed with: %s" % (checksumfunc, e) )
-    if fchecksumval != checksumval or fsize != size:
-        fail(211, "%s size:%s %s, checksum: %s %s"%
-             (dest, fsize, size, fchecksumval, checksumval))
-    else:
-        fail(212, "%s: File exists" % dest)
+        if fchecksumval != checksumval:
+            fail(205, "Checksum mismatch %s!=%s"%(fchecksumval, checksumval))
 
-if os.path.isdir(dest) and not dest.endswith('/'):
-    dest += '/'
-if dest.endswith('/'):
-    basename = src.split('/')[-1]
-    dest += basename
-
-dirname, filename = os.path.split(dest)
-if not os.path.exists(dirname):
-    try:
-        os.makedirs(dirname,PERM_DIR)
-    except:
-        ##Might already exist, created by another process
-        pass
-
-if not os.path.exists(dirname):
-    fail(206, "Cannot create %s" % dirname)
-
-cmd = "%s %s" % (COPY_COMMAND, COPY_ARGS)
-cmd += " '%s' file://%s 2>&1" % (src, dest)
-
-t = Timer()
-p = os.popen(cmd)
-output = p.read()
-if output:
-    log(output)
-status = p.close()
-log("transfer took %s seconds for a %s byte file,  %.2f b/s"
-    % (t,size, size/float(t)) )
-
-if status:
-    ##Transfer failed.  Could retry, but that's already
-    ## done inside of pcache
-    if os.path.exists(dest):
-        try:
-            os.unlink(dest)
-        except:
-            pass
-    fail(201, "Copy command failed")
-
-if not os.path.exists(dest):
-    fail(201, "Copy command failed")
-
-try:
-    os.chmod(dest, PERM_FILE)
-except:
-    pass
-
-## Verify size/checksum if asked for
-### XXXXX TODO move this to pcache
-if size:
-    try:
-        fsize = os.stat(dest)[stat.ST_SIZE]
-    except:
-        fsize = "UNKNOWN"
-    if size != fsize:
-        fail(204, "Size mismatch %s!=%s"%(fsize,size))
-
-if checksumval:
-    t = Timer()
-    try:
-        fchecksumval = checksumfunc(dest)
-        log("local checksum took %s seconds for %s byte file,  %.2f b/s" % (t,fsize, fsize/float(t)) )
-    except Exception,e:
-        fchecksumval = "UNKNOWN"
-        log("%s failed with: %s" % (checksumfunc, e) )
-    if fchecksumval != checksumval:
-        fail(205, "Checksum mismatch %s!=%s"%(fchecksumval, checksumval))
-
-log("0 OK")
+    log("0 OK")
 

@@ -43,8 +43,8 @@ def putDataset(file, dataset, auth_key):
     sefactory = getSEFactory()
 
     #se initialization
-    toSE = sefactory.getSE('grid', params=None)
     fromSE = sefactory.getSE('dropbox', params={'auth_key': auth_key})
+    toSE = sefactory.getSE('grid', params=None)
 
     tmphome = "%s/%s" % (DATA_HOME, dataset)
     os.mkdir(tmphome)

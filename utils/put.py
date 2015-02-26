@@ -11,21 +11,16 @@
 
 
 import sys, os, stat, time
-from timed_command import timed_command
 
 #Tunable parameters
-from ddm.DDM import SITE_PREFIX
-from ddm.DDM import SITE_DATA_HOME
 from utils.get import adler32
 
 COPY_TIMEOUT=3600
 COPY_RETRIES=5
 COPY_COMMAND='lcg-cp'
 COPY_ARGS='--verbose --vo atlas -b --srm-timeout=3600 --connect-timeout=300 --sendreceive-timeout=3600 -U srmv2'
-COPY_SETUP='setup.sh'
-COPY_PREFIX=':8443/srm/managerv2?SFN='
-SRM_PREFIX = 'srm://sdrm.t1.grid.kiae.ru'
-PNFSROOT='/pnfs/uchicago.edu'
+SITE_PREFIX = 'srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
+SITE_DATA_HOME = '/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio'
 PERM_DIR=0775
 PERM_FILE=0664
 
@@ -54,7 +49,7 @@ def getChecksum(surl):
     cmd += ' %s' % surl
     p = os.popen(cmd)
     output = p.read()
-    return 'ad:'.join(output.split('\t')[0])
+    return output.split('\t')[0]
 
 def getSURL(scope, lfn):
         #get full surl
@@ -74,104 +69,105 @@ def getSURL(scope, lfn):
         return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
 def register():
+    print 'registration'
+
+if __name__ == '__main__':
+    token=None
+    size=None
+    checksumtype=None
+    checksumval=None
+
+    log(' '.join(sys.argv))
+
+    args = sys.argv[1:]
+    while args and args[0].startswith('-'):
+        arg = args.pop(0)
+        val = args.pop(0)
+        if arg=='-t':
+            token = val
+        elif arg=='--size' or arg=='-s':
+            size = int(val)
+        elif arg=='--checksum' or arg=='-c':
+            if ':' in val:
+                checksumtype, checksumval = val.split(':')
+            else:
+                checksumtype = "md5"
+            # Only Adler32's supported in dCache
+            if not checksumtype.startswith("ad"):
+                fail(202, "Unsupported checksum type %s" % checksumtype)
+
+    if len(args) != 2:
+        fail(202, "Invalid command")
+
+    src, dataset = args
+    fname = src.split('/')[-1]
+    fsize = int(os.path.getsize(src))
+    fsum = adler32(src)
+    dest = getSURL('user.ruslan', fname)
 
 
-token=None
-size=None
-checksumtype=None
-checksumval=None
-
-log(' '.join(sys.argv))
-
-args = sys.argv[1:]
-while args and args[0].startswith('-'):
-    arg = args.pop(0)
-    val = args.pop(0)
-    if arg=='-t':
-        token = val
-    elif arg=='--size' or arg=='-s':
-        size = int(val)
-    elif arg=='--checksum' or arg=='-c':
-        if ':' in val:
-            checksumtype, checksumval = val.split(':')
+    """
+    if os.path.isfile(src):
+        ### * 211 - File already exist and is different (size/checksum).
+        ### * 212 - File already exist and is the same as the source (same size/checksum)
+        fchecksumval = None
+        if checksumval:
+            try:
+                fchecksumval = getChecksum(dest)
+            except:
+                fchecksumval = "UNKNOWN"
+        if fchecksumval != checksumval:
+            fail(211, "%s checksum: %s %s"% (src, fchecksumval,checksumval))
         else:
-            checksumtype = "md5"
-        # Only Adler32's supported in dCache
-        if not checksumtype.startswith("ad"):
-            fail(202, "Unsupported checksum type %s" % checksumtype)
+            fail(212, "%s: File exists" % dest)
+    """
 
-if len(args) != 2:
-    fail(202, "Invalid command")
+    if token:
+        token_arg = '-S %s' % token
+    else:
+        token_arg= ''
 
-src, dataset = args
-fname = src.split('/')[-1]
-fsize = int(os.path.getsize(src))
-fsum = adler32(src)
-dest = getSURL('user.ruslan', fname)
+    cmd = ''
+    cmd += "%s %s %s file://%s %s 2>&1" % (
+        COPY_COMMAND, COPY_ARGS, token_arg, src, dest)
+    """
+    for retry in xrange(COPY_RETRIES+1):
+        log("executing %s retry %s" % (cmd, retry))
+        exit_status, time_used, cmd_out, cmd_err = timed_command(cmd, COPY_TIMEOUT)
+        # lcg-cp does not return error codes, and on a successful transfer it
+        # prints a stray newline to stdout - anything other than whitespace
+        # indicates an error
+        if exit_status or cmd_err or cmd_out.strip():
+            log("command failed %s %s %s" % (exit_status, cmd_err, cmd_out.strip()))
+            if os.path.exists(dest):
+                try:
+                    os.unlink(dest)
+                except:
+                    pass
+            time.sleep(15)
+        else:
+            break
 
-
-"""
-if os.path.isfile(src):
-    ### * 211 - File already exist and is different (size/checksum).
-    ### * 212 - File already exist and is the same as the source (same size/checksum)
-    fchecksumval = None
     if checksumval:
         try:
             fchecksumval = getChecksum(dest)
         except:
             fchecksumval = "UNKNOWN"
-    if fchecksumval != checksumval:
-        fail(211, "%s checksum: %s %s"% (src, fchecksumval,checksumval))
-    else:
-        fail(212, "%s: File exists" % dest)
-"""
+        if fchecksumval != checksumval:
+            fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
+    """
+    print cmd
+    print fname
+    print dest
+    print fsize
+    print fsum
+    #register(fname, dest, fsize, fsum)
 
-if token:
-    token_arg = '-S %s' % token
-else:
-    token_arg= ''
+    log("%s OK" % dest)
 
-cmd = ''
-cmd += "%s %s %s file://%s %s 2>&1" % (
-    COPY_COMMAND, COPY_ARGS, token_arg, src, dest)
-"""
-for retry in xrange(COPY_RETRIES+1):
-    log("executing %s retry %s" % (cmd, retry))
-    exit_status, time_used, cmd_out, cmd_err = timed_command(cmd, COPY_TIMEOUT)
-    # lcg-cp does not return error codes, and on a successful transfer it
-    # prints a stray newline to stdout - anything other than whitespace
-    # indicates an error
-    if exit_status or cmd_err or cmd_out.strip():
-        log("command failed %s %s %s" % (exit_status, cmd_err, cmd_out.strip()))
-        if os.path.exists(dest):
-            try:
-                os.unlink(dest)
-            except:
-                pass
-        time.sleep(15)
-    else:
-        break
+    print dataset
 
-if checksumval:
-    try:
-        fchecksumval = getChecksum(dest)
-    except:
-        fchecksumval = "UNKNOWN"
-    if fchecksumval != checksumval:
-        fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
-"""
-print cmd
-print fname
-print dest
-print fsize
-print fsum
-#register(fname, dest, fsize, fsum)
-
-log("%s OK" % dest)
-
-print dataset
-
-if size:
-    print "size", size
-if checksumval:
-    print "adler32", checksumval
+    if size:
+        print "size", size
+    if checksumval:
+        print "adler32", checksumval

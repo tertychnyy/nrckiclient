@@ -17,7 +17,6 @@ class GridSEPlugin():
         #print out
 
     def put(self, src, dest):
-        #os.system('utils/put.py %s %s' % (src, dest))
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('python %s/utils/put.py %s %s' % (BIN_HOME, src, dest))
+        out = proc.communicate('python %s/utils/put.py -t %s %s %s' % (BIN_HOME, 'ATLASSCRATCHDISK', src, dest))
         #print out
