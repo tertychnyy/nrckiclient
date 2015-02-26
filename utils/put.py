@@ -8,12 +8,16 @@
 #lcg-cp --verbose --vo atlas -b --srm-timeout=3600 --connect-timeout=300 --sendreceive-timeout=3600 -U srmv2 -S ATLASSCRATCHDISK fil
 #e:///s/ls2/home/users/poyda/testpilot/Panda_Pilot_32495_1423052812/PandaJob_66_1423052815/stageout.job.output.lib.txt srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN=/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio/NULL/8c/73/stageout.j
 #ob.output.lib.txt
-
+import commands
 
 import sys, os, stat, time
 
 #Tunable parameters
 from utils.get import adler32
+
+from rucio.client import Client as RucioClient
+from rucio.common.exception import UnsupportedOperation,DataIdentifierNotFound,\
+    FileAlreadyExists,Duplicate,DataIdentifierAlreadyExists
 
 COPY_TIMEOUT=3600
 COPY_RETRIES=5
@@ -52,24 +56,61 @@ def getChecksum(surl):
     return output.split('\t')[0]
 
 def getSURL(scope, lfn):
-        #get full surl
-        # /<site_prefix>/<space_token>/rucio/<scope>/md5(<scope>:<lfn>)[0:2]/md5(<scope:lfn>)[2:4]/<lfn>
-        try:
-            # for python 2.6
-            import hashlib
-            hash = hashlib.md5()
-        except:
-            # for python 2.4
-            import md5
-            hash = md5.new()
+    #get full surl
+    # /<site_prefix>/<space_token>/rucio/<scope>/md5(<scope>:<lfn>)[0:2]/md5(<scope:lfn>)[2:4]/<lfn>
+    try:
+        # for python 2.6
+        import hashlib
+        hash = hashlib.md5()
+    except:
+        # for python 2.4
+        import md5
+        hash = md5.new()
 
-        correctedscope = "/".join(scope.split('.'))
-        hash.update('%s:%s' % (scope, lfn))
-        hash_hex = hash.hexdigest()[:6]
-        return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
+    correctedscope = "/".join(scope.split('.'))
+    hash.update('%s:%s' % (scope, lfn))
+    hash_hex = hash.hexdigest()[:6]
+    return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
-def register():
-    print 'registration'
+def register(fname, scope, surl, fsize, fsum):
+
+    # extract scope from dataset
+    guid = commands.getoutput('uuidgen')
+    dataset = 'user.ruslan.data.%s' % commands.getoutput('uuidgen')
+    dsn = dataset
+
+    attachmentList = []
+    files = []
+
+    lfn = fname
+    # set metadata
+    meta = {'guid': guid}
+    # set mandatory fields
+    file = {'scope': scope,
+            'name' : lfn,
+            'bytes': fsize,
+            'meta' : meta}
+    file['adler32'] = fsum
+    file['pfn'] = surl
+    # append files
+    files.append(file)
+    # add attachment
+    attachment = {'scope':scope,
+                  'name':dsn,
+                  'dids':files}
+
+    attachmentList.append(attachment)
+
+    try:
+        log("DQ2 registraion for file: %s" % fname)
+
+        client = RucioClient()
+        client.add_files_to_datasets(attachmentList,ignore_duplicate=True)
+    except:
+        # unknown errors
+        errType,errValue = sys.exc_info()[:2]
+        out = '%s : %s' % (errType,errValue)
+        log(out)
 
 if __name__ == '__main__':
     token=None
@@ -103,7 +144,8 @@ if __name__ == '__main__':
     fname = src.split('/')[-1]
     fsize = int(os.path.getsize(src))
     fsum = adler32(src)
-    dest = getSURL('user.ruslan', fname)
+    scope = 'user.ruslan'
+    dest = getSURL(scope, fname)
 
 
     """
@@ -130,23 +172,18 @@ if __name__ == '__main__':
     cmd = ''
     cmd += "%s %s %s file://%s %s 2>&1" % (
         COPY_COMMAND, COPY_ARGS, token_arg, src, dest)
-    """
-    for retry in xrange(COPY_RETRIES+1):
-        log("executing %s retry %s" % (cmd, retry))
-        exit_status, time_used, cmd_out, cmd_err = timed_command(cmd, COPY_TIMEOUT)
-        # lcg-cp does not return error codes, and on a successful transfer it
-        # prints a stray newline to stdout - anything other than whitespace
-        # indicates an error
-        if exit_status or cmd_err or cmd_out.strip():
-            log("command failed %s %s %s" % (exit_status, cmd_err, cmd_out.strip()))
-            if os.path.exists(dest):
-                try:
-                    os.unlink(dest)
-                except:
-                    pass
-            time.sleep(15)
-        else:
-            break
+
+    log("Executing command: %s" % (cmd))
+    t0 = os.times()
+
+    try:
+        s, o = commands.getstatusoutput(cmd)
+    except Exception, e:
+        log("!!WARNING!!2999!! lcg-cp threw an exception: %s" % (o))
+
+    t1 = os.times()
+    t = t1[4] - t0[4]
+    log("Command finished after %f s" % (t))
 
     if checksumval:
         try:
@@ -155,13 +192,8 @@ if __name__ == '__main__':
             fchecksumval = "UNKNOWN"
         if fchecksumval != checksumval:
             fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
-    """
-    print cmd
-    print fname
-    print dest
-    print fsize
-    print fsum
-    #register(fname, dest, fsize, fsum)
+
+    register(fname, scope, dest, fsize, fsum)
 
     log("%s OK" % dest)
 
