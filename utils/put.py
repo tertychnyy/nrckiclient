@@ -9,15 +9,30 @@
 #e:///s/ls2/home/users/poyda/testpilot/Panda_Pilot_32495_1423052812/PandaJob_66_1423052815/stageout.job.output.lib.txt srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN=/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio/NULL/8c/73/stageout.j
 #ob.output.lib.txt
 import commands
-
+import datetime
+import exceptions
 import sys, os, stat, time
+
+from dq2.clientapi import DQ2
+from dq2.filecatalog.FileCatalogUnknownFactory import FileCatalogUnknownFactory
+from dq2.filecatalog.FileCatalogException import FileCatalogException
+from rucio.common.exception import FileConsistencyMismatch,DataIdentifierNotFound,UnsupportedOperation
+
+from DDM import rucioAPI
+
+try:
+    from dq2.clientapi.cli import Register2
+except:
+    pass
+try:
+    from dq2.filecatalog.rucio.RucioFileCatalogException import RucioFileCatalogException
+except:
+    # dummy class
+    class RucioFileCatalogException:
+        pass
 
 #Tunable parameters
 from utils.get import adler32
-
-from rucio.client import Client as RucioClient
-from rucio.common.exception import UnsupportedOperation,DataIdentifierNotFound,\
-    FileAlreadyExists,Duplicate,DataIdentifierAlreadyExists
 
 COPY_TIMEOUT=3600
 COPY_RETRIES=5
@@ -72,7 +87,7 @@ def getSURL(scope, lfn):
     hash_hex = hash.hexdigest()[:6]
     return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
-def register(fname, scope, surl, fsize, fsum):
+def register(fname, scope, dataset, surl, fsize, fsum):
 
     # extract scope from dataset
     guid = commands.getoutput('uuidgen')
@@ -105,12 +120,73 @@ def register(fname, scope, surl, fsize, fsum):
         log("DQ2 registraion for file: %s" % fname)
 
         client = RucioClient()
-        client.add_files_to_datasets(attachmentList,ignore_duplicate=True)
+        client.add_files_to_datasets(attachmentList)
     except:
         # unknown errors
         errType,errValue = sys.exc_info()[:2]
         out = '%s : %s' % (errType,errValue)
         log(out)
+
+def register2(fname, dataset, surl, fsize, fsum):
+    guid = commands.getoutput('uuidgen')
+
+    #describe files
+    destIdMap = {}
+    destIdMap[dataset] = [{'checksum': 'ad:' + fsum,
+                           'surl': surl,
+                           'guid': guid,
+                           'lfn': fname,
+                           'size': long(fsize)}]
+
+
+    # add files
+    nTry = 3
+    for iTry in range(nTry):
+        isFatal  = False
+        isFailed = False
+        regStart = datetime.datetime.utcnow()
+        try:
+            regMsgStr = "LFC+DQ2 registraion with for {1} files ".format(1)
+            log('%s %s' % ('registerFilesInDatasets',str(destIdMap)))
+            out = rucioAPI.registerFilesInDataset(destIdMap)
+        except (DQ2.DQClosedDatasetException,
+                DQ2.DQFrozenDatasetException,
+                DQ2.DQUnknownDatasetException,
+                DQ2.DQDatasetExistsException,
+                DQ2.DQFileMetaDataMismatchException,
+                FileCatalogUnknownFactory,
+                FileCatalogException,
+                DataIdentifierNotFound,
+                RucioFileCatalogException,
+                FileConsistencyMismatch,
+                UnsupportedOperation,
+                exceptions.KeyError):
+            # fatal errors
+            errType,errValue = sys.exc_info()[:2]
+            out = '%s : %s' % (errType,errValue)
+            isFatal = True
+            isFailed = True
+        except:
+            # unknown errors
+            errType,errValue = sys.exc_info()[:2]
+            out = '%s : %s' % (errType,errValue)
+            isFatal = False
+            isFailed = True
+        regTime = datetime.datetime.utcnow() - regStart
+        log(regMsgStr + 'took %s.%03d sec' % (regTime.seconds,regTime.microseconds/1000))
+        # failed
+        if isFailed or isFatal:
+            log('Error: %s' % out)
+            if (iTry+1) == nTry or isFatal:
+                errMsg = "Could not add files to DDM: "
+                log('%s %s' % (errMsg, out))
+                return 1
+            log("Try:%s" % iTry)
+            # sleep
+            time.sleep(10)
+        else:
+            log('%s' % str(out))
+            break
 
 if __name__ == '__main__':
     token=None
@@ -193,7 +269,7 @@ if __name__ == '__main__':
         if fchecksumval != checksumval:
             fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
 
-    register(fname, scope, dest, fsize, fsum)
+    register(fname, dataset, dest, fsize, fsum)
 
     log("%s OK" % dest)
 
