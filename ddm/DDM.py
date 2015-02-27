@@ -1,6 +1,10 @@
 from ddm.DropboxSEPlugin import DropboxSEPlugin
 from ddm.GridSEPlugin import GridSEPlugin
 
+from rucio.client import Client as RucioClient
+from rucio.common.exception import UnsupportedOperation,DataIdentifierNotFound,\
+    FileAlreadyExists,Duplicate,DataIdentifierAlreadyExists
+
 BIN_HOME='/srv/lsm/rrcki-sendjob'
 SITE_PREFIX = 'srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
 SITE_DATA_HOME = '/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio'
@@ -36,3 +40,7 @@ class SEPlugin(object):
 
     def put(self, src, dest):
         raise NotImplementedError("SEPlugin.put not implemented")
+
+# instantiate
+rucioAPI = RucioAPI()
+del RucioAPI

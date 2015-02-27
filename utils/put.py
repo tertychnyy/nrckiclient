@@ -18,8 +18,6 @@ from dq2.filecatalog.FileCatalogUnknownFactory import FileCatalogUnknownFactory
 from dq2.filecatalog.FileCatalogException import FileCatalogException
 from rucio.common.exception import FileConsistencyMismatch,DataIdentifierNotFound,UnsupportedOperation
 
-from DDM import rucioAPI
-
 try:
     from dq2.clientapi.cli import Register2
 except:
@@ -30,6 +28,8 @@ except:
     # dummy class
     class RucioFileCatalogException:
         pass
+
+from ddm.DDM import rucioAPI
 
 #Tunable parameters
 from utils.get import adler32
@@ -145,6 +145,7 @@ def register2(fname, dataset, surl, fsize, fsum):
         isFatal  = False
         isFailed = False
         regStart = datetime.datetime.utcnow()
+        regMsgStr = ''
         try:
             regMsgStr = "LFC+DQ2 registraion with for {1} files ".format(1)
             log('%s %s' % ('registerFilesInDatasets',str(destIdMap)))
@@ -279,3 +280,7 @@ if __name__ == '__main__':
         print "size", size
     if checksumval:
         print "adler32", checksumval
+
+# instantiate
+rucioAPI = RucioAPI()
+del RucioAPI
