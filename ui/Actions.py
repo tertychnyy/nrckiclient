@@ -48,7 +48,8 @@ def putDataset(file, dataset, auth_key):
     toSE = sefactory.getSE('grid', params=None)
 
     tmphome = "%s/%s" % (DATA_HOME, dataset)
-    os.mkdir(tmphome)
+    #os.mkdir(tmphome)
+    os.makedirs(tmphome, exist_ok=True)
 
     fname = file.split('/')[-1]
     tmpfile = os.path.join(tmphome, fname)

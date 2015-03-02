@@ -63,7 +63,7 @@ class LocalSEPlugin():
         if dest.endswith('/'):
             destdir = dest
         else:
-            destdir = os.path.join(dest.split('/')[:-1])
+            destdir = dest[:-(len(fname)+1)]
 
         try:
             shutil.copy2(src, destdir)
