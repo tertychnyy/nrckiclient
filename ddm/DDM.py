@@ -1,6 +1,7 @@
 import hashlib
 from ddm.DropboxSEPlugin import DropboxSEPlugin
 from ddm.GridSEPlugin import GridSEPlugin
+from ddm.LocalSEPlugin import LocalSEPlugin
 
 from rucio.client import Client as RucioClient
 from rucio.common.exception import UnsupportedOperation,DataIdentifierNotFound,\
@@ -16,7 +17,7 @@ class SEFactory:
 
     def getSE(self, label, params=None):
         try:
-            if label not in ['dropbox', 'grid']:
+            if label not in ['dropbox', 'grid', 'local']:
                 raise AttributeError("Attribute 'label' error: Not found in list")
 
             if label == 'dropbox':
@@ -24,6 +25,9 @@ class SEFactory:
 
             elif label == 'grid':
                 se = GridSEPlugin(params)
+
+            elif label == 'local':
+                se = LocalSEPlugin(params)
 
             else:
                 se = SEPlugin()

@@ -29,7 +29,7 @@ except:
     class RucioFileCatalogException:
         pass
 
-from dataservice.DDM import rucioAPI
+from ddm.DDM import rucioAPI
 
 #Tunable parameters
 from utils.get import adler32
