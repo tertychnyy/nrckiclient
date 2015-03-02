@@ -25,14 +25,16 @@ def fail(errorcode=200,msg=None):
     sys.exit(errorcode)
 
 class LocalSEPlugin():
-    def __init__(self):
+    def __init__(self, params=None):
         print 'Local SEPlugin initialization'
 
-    def get(self, src, dest, fsize, fsum):
+    def get(self, src, dest):
         if not os.path.isfile(src):
             fail(210, "%s: File not found" %src)
 
         fname = src.split('/')[-1]
+        fsize = int(os.path.getsize(src))
+        fsum = adler32(src)
 
         ## Check for 'file exists'
         if os.path.isfile(dest):
@@ -73,9 +75,5 @@ class LocalSEPlugin():
         if not os.path.isfile(src):
             fail(210, "%s: File not found" %src)
 
-        fname = src.split('/')[-1]
-        fsize = int(os.path.getsize(src))
-        fsum = adler32(src)
-
-        self.get(src, dest, fsize, fsum)
+        self.get(src, dest)
         shutil.rmtree(os.path.join(src.split('/')[:-1]))
