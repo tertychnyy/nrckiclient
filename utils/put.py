@@ -17,7 +17,10 @@ from dq2.clientapi import DQ2
 from dq2.filecatalog.FileCatalogUnknownFactory import FileCatalogUnknownFactory
 from dq2.filecatalog.FileCatalogException import FileCatalogException
 from rucio.common.exception import FileConsistencyMismatch,DataIdentifierNotFound,UnsupportedOperation
-from ddm.DDM import rucioAPI
+
+from rucio.client import Client as RucioClient
+from rucio.common.exception import UnsupportedOperation,DataIdentifierNotFound,\
+    FileAlreadyExists,Duplicate,DataIdentifierAlreadyExists
 
 try:
     from dq2.clientapi.cli import Register2
@@ -86,7 +89,7 @@ def getSURL(scope, lfn):
     hash_hex = hash.hexdigest()[:6]
     return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
-def extract_scope(self, dsn):
+def extract_scope(dsn):
         if ':' in dsn:
             return dsn.split(':')[:2]
         scope = dsn.split('.')[0]
@@ -159,6 +162,7 @@ def register2(lfn, dataset, surl, fsize, fsum):
                     'name':dsn,
                     'dids':files}
 
+    print attachment
     attachmentList.append(attachment)
 
     # add files
@@ -171,7 +175,8 @@ def register2(lfn, dataset, surl, fsize, fsum):
         try:
             regMsgStr = "LFC+DQ2 registraion with for {1} files ".format(1)
             log('%s %s' % ('registerFilesInDatasets',str(attachmentList)))
-            out = rucioAPI.registerFilesInDataset(attachmentList)
+            client = RucioClient()
+            out = client.add_files_to_datasets(attachmentList,ignore_duplicate=True)
         except (DQ2.DQClosedDatasetException,
                 DQ2.DQFrozenDatasetException,
                 DQ2.DQUnknownDatasetException,
