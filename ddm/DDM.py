@@ -46,6 +46,14 @@ class SEPlugin(object):
     def put(self, src, dest):
         raise NotImplementedError("SEPlugin.put not implemented")
 
+class DDM:
+    def __init__(self):
+        pass
+
+# instantiate
+ddm = DDM()
+del DDM
+
 # rucio
 class RucioAPI:
     # constructor
@@ -214,8 +222,6 @@ class RucioAPI:
         except:
             pass
         return retMap
-
-
 
 # instantiate
 rucioAPI = RucioAPI()

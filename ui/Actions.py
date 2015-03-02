@@ -49,7 +49,7 @@ def putDataset(file, dataset, auth_key):
 
     tmphome = "%s/%s" % (DATA_HOME, dataset)
     #os.mkdir(tmphome)
-    os.makedirs(tmphome, exist_ok=True)
+    os.makedirs(tmphome)
 
     fname = file.split('/')[-1]
     tmpfile = os.path.join(tmphome, fname)

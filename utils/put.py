@@ -17,6 +17,7 @@ from dq2.clientapi import DQ2
 from dq2.filecatalog.FileCatalogUnknownFactory import FileCatalogUnknownFactory
 from dq2.filecatalog.FileCatalogException import FileCatalogException
 from rucio.common.exception import FileConsistencyMismatch,DataIdentifierNotFound,UnsupportedOperation
+from ddm.DDM import rucioAPI
 
 try:
     from dq2.clientapi.cli import Register2
@@ -28,8 +29,6 @@ except:
     # dummy class
     class RucioFileCatalogException:
         pass
-
-from ddm.DDM import rucioAPI
 
 #Tunable parameters
 from utils.get import adler32
@@ -87,6 +86,14 @@ def getSURL(scope, lfn):
     hash_hex = hash.hexdigest()[:6]
     return '%s%s/%s/%s/%s/%s' % (SITE_PREFIX, SITE_DATA_HOME, correctedscope, hash_hex[0:2], hash_hex[2:4], lfn)
 
+def extract_scope(self, dsn):
+        if ':' in dsn:
+            return dsn.split(':')[:2]
+        scope = dsn.split('.')[0]
+        if dsn.startswith('user') or dsn.startswith('group'):
+            scope = ".".join(dsn.split('.')[0:2])
+        return scope,dsn
+
 def register(fname, scope, dataset, surl, fsize, fsum):
 
     # extract scope from dataset
@@ -127,17 +134,32 @@ def register(fname, scope, dataset, surl, fsize, fsum):
         out = '%s : %s' % (errType,errValue)
         log(out)
 
-def register2(fname, dataset, surl, fsize, fsum):
+def register2(lfn, dataset, surl, fsize, fsum):
     guid = commands.getoutput('uuidgen')
 
     #describe files
-    destIdMap = {}
-    destIdMap[dataset] = [{'checksum': 'ad:' + fsum,
-                           'surl': surl,
-                           'guid': guid,
-                           'lfn': fname,
-                           'size': long(fsize)}]
+    attachmentList = []
+    files = []
 
+    scope,dsn = extract_scope(dataset)
+    meta = {'guid': guid}
+    if ':' in lfn:
+        s, lfn = lfn.split(':')
+    else:
+        s = scope
+    file = {'scope': scope,
+            'name' : lfn,
+            'bytes': fsize,
+            'meta' : meta,
+            'adler32': fsum,
+            'pfn': surl}
+    files.append(file)
+
+    attachment = {'scope':scope,
+                    'name':dsn,
+                    'dids':files}
+
+    attachmentList.append(attachment)
 
     # add files
     nTry = 3
@@ -148,8 +170,8 @@ def register2(fname, dataset, surl, fsize, fsum):
         regMsgStr = ''
         try:
             regMsgStr = "LFC+DQ2 registraion with for {1} files ".format(1)
-            log('%s %s' % ('registerFilesInDatasets',str(destIdMap)))
-            out = rucioAPI.registerFilesInDataset(destIdMap)
+            log('%s %s' % ('registerFilesInDatasets',str(attachmentList)))
+            out = rucioAPI.registerFilesInDataset(attachmentList)
         except (DQ2.DQClosedDatasetException,
                 DQ2.DQFrozenDatasetException,
                 DQ2.DQUnknownDatasetException,
@@ -270,7 +292,7 @@ if __name__ == '__main__':
         if fchecksumval != checksumval:
             fail(205, "Checksum mismatch %s!=%s"%(fchecksumval,checksumval))
 
-    register(fname, dataset, dest, fsize, fsum)
+    register2(fname, dataset, dest, fsize, fsum)
 
     log("%s OK" % dest)
 
@@ -280,7 +302,3 @@ if __name__ == '__main__':
         print "size", size
     if checksumval:
         print "adler32", checksumval
-
-# instantiate
-rucioAPI = RucioAPI()
-del RucioAPI
