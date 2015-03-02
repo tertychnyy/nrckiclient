@@ -97,6 +97,54 @@ def extract_scope(dsn):
             scope = ".".join(dsn.split('.')[0:2])
         return scope,dsn
 
+# register files in dataset
+def registerFilesInDataset(self,idMap):
+    # loop over all rse
+    attachmentList = []
+    for rse,tmpMap in idMap.iteritems():
+        # loop over all datasets
+        for datasetName,fileList in tmpMap.iteritems():
+            # extract scope from dataset
+            scope,dsn = self.extract_scope(datasetName)
+            files = []
+            for tmpFile in fileList:
+                # extract scope from LFN if available
+                lfn = tmpFile['lfn']
+                if ':' in lfn:
+                    s, lfn = lfn.split(':')
+                else:
+                    s = scope
+                # set metadata
+                meta = {'guid': tmpFile['guid']}
+                if 'events' in tmpFile:
+                    meta['events'] = tmpFile['events']
+                if 'lumiblocknr' in tmpFile:
+                    meta['lumiblocknr'] = tmpFile['lumiblocknr']
+                # set mandatory fields
+                file = {'scope': s,
+                        'name' : lfn,
+                        'bytes': tmpFile['size'],
+                        'meta' : meta}
+                checksum = tmpFile['checksum']
+                if checksum.startswith('md5:'):
+                    file['md5'] = checksum[4:]
+                elif checksum.startswith('ad:'):
+                    file['adler32'] = checksum[3:]
+                if 'surl' in tmpFile:
+                    file['pfn'] = tmpFile['surl']
+                # append files
+                files.append(file)
+            # add attachment
+            attachment = {'scope':scope,
+                          'name':dsn,
+                          'dids':files}
+            if rse != None:
+                attachment['rse'] = rse
+            attachmentList.append(attachment)
+    # add files
+    client = RucioClient()
+    return client.add_files_to_datasets(attachmentList)
+
 def register(fname, scope, dataset, surl, fsize, fsum):
 
     # extract scope from dataset
@@ -138,32 +186,17 @@ def register(fname, scope, dataset, surl, fsize, fsum):
         log(out)
 
 def register2(lfn, dataset, surl, fsize, fsum):
-    guid = commands.getoutput('uuidgen')
-
-    #describe files
-    attachmentList = []
+    idMap = {}
     files = []
 
-    scope,dsn = extract_scope(dataset)
-    meta = {'guid': guid}
-    if ':' in lfn:
-        s, lfn = lfn.split(':')
-    else:
-        s = scope
-    file = {'scope': scope,
-            'name' : lfn,
-            'bytes': fsize,
-            'meta' : meta,
-            'adler32': fsum,
-            'pfn': surl}
+    guid = commands.getoutput('uuidgen')
+    file = {'checksum': 'ad:' + fsum,
+            'surl' : surl,
+            'guid': guid,
+            'lfn' : fname,
+            'size': long(fsize)}
     files.append(file)
-
-    attachment = {'scope':scope,
-                    'name':dsn,
-                    'dids':files}
-
-    print attachment
-    attachmentList.append(attachment)
+    idMap[dataset] = files
 
     # add files
     nTry = 3
@@ -173,10 +206,10 @@ def register2(lfn, dataset, surl, fsize, fsum):
         regStart = datetime.datetime.utcnow()
         regMsgStr = ''
         try:
-            regMsgStr = "LFC+DQ2 registraion with for {1} files ".format(1)
-            log('%s %s' % ('registerFilesInDatasets',str(attachmentList)))
+            regMsgStr = "LFC+DQ2 registraion with for 1 file "
+            log('%s %s' % ('registerFilesInDatasets', idMap))
             client = RucioClient()
-            out = client.add_files_to_datasets(attachmentList,ignore_duplicate=True)
+            out = registerFilesInDataset(idMap)
         except (DQ2.DQClosedDatasetException,
                 DQ2.DQFrozenDatasetException,
                 DQ2.DQUnknownDatasetException,
