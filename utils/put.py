@@ -98,14 +98,14 @@ def extract_scope(dsn):
         return scope,dsn
 
 # register files in dataset
-def registerFilesInDataset(self,idMap):
+def registerFilesInDataset(idMap):
     # loop over all rse
     attachmentList = []
     for rse,tmpMap in idMap.iteritems():
         # loop over all datasets
         for datasetName,fileList in tmpMap.iteritems():
             # extract scope from dataset
-            scope,dsn = self.extract_scope(datasetName)
+            scope,dsn = extract_scope(datasetName)
             files = []
             for tmpFile in fileList:
                 # extract scope from LFN if available
@@ -185,7 +185,7 @@ def register(fname, scope, dataset, surl, fsize, fsum):
         out = '%s : %s' % (errType,errValue)
         log(out)
 
-def register2(lfn, dataset, surl, fsize, fsum):
+def register2(fname, dataset, surl, fsize, fsum):
     idMap = {}
     files = []
 
@@ -198,6 +198,8 @@ def register2(lfn, dataset, surl, fsize, fsum):
     files.append(file)
     idMap[dataset] = files
 
+    destIdMap = {None:idMap}
+
     # add files
     nTry = 3
     for iTry in range(nTry):
@@ -208,8 +210,7 @@ def register2(lfn, dataset, surl, fsize, fsum):
         try:
             regMsgStr = "LFC+DQ2 registraion with for 1 file "
             log('%s %s' % ('registerFilesInDatasets', idMap))
-            client = RucioClient()
-            out = registerFilesInDataset(idMap)
+            out = registerFilesInDataset(destIdMap)
         except (DQ2.DQClosedDatasetException,
                 DQ2.DQFrozenDatasetException,
                 DQ2.DQUnknownDatasetException,
@@ -340,3 +341,7 @@ if __name__ == '__main__':
         print "size", size
     if checksumval:
         print "adler32", checksumval
+
+#rucio upload --rse RRC-KI-T1_SCRATCHDISK --scope user.ruslan --files test.txt
+#rucio get-metadata user.ruslan:test.txt
+#rucio add-files-to-dataset --to user.ruslan:user.ruslan.data.dataset1 user.ruslan:test.txt
