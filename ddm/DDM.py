@@ -3,15 +3,10 @@ import os
 import zlib
 import time
 import sys
-from ddm.DropboxSEPlugin import DropboxSEPlugin
-from ddm.GridSEPlugin import GridSEPlugin
-from ddm.LocalSEPlugin import LocalSEPlugin
 
 BIN_HOME='/srv/lsm/rrcki-sendjob'
 SITE_PREFIX = 'srm://sdrm.t1.grid.kiae.ru:8443/srm/managerv2?SFN='
 SITE_DATA_HOME = '/t1.grid.kiae.ru/data/atlas/atlasscratchdisk/rucio'
-
-
 
 
 class DDM:
@@ -74,12 +69,15 @@ class SEFactory:
                 raise AttributeError("Attribute 'label' error: Not found in list")
 
             if label == 'dropbox':
+                from ddm.DropboxSEPlugin import DropboxSEPlugin
                 se = DropboxSEPlugin(params)
 
             elif label == 'grid':
+                from ddm.GridSEPlugin import GridSEPlugin
                 se = GridSEPlugin(params)
 
             elif label == 'local':
+                from ddm.LocalSEPlugin import LocalSEPlugin
                 se = LocalSEPlugin(params)
 
             else:
