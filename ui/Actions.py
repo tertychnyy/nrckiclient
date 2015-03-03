@@ -1,3 +1,4 @@
+import commands
 import os
 import subprocess
 import shutil
@@ -49,13 +50,22 @@ def putDataset(file, dataset, auth_key):
 
     tmphome = "%s/%s" % (DATA_HOME, dataset)
     #os.mkdir(tmphome)
-    os.makedirs(tmphome)
+    if not os.path.isdir(tmphome):
+        os.makedirs(tmphome)
+
 
     fname = file.split('/')[-1]
     tmpfile = os.path.join(tmphome, fname)
 
     fromSE.get(file, tmpfile)
-    toSE.put(tmpfile, dataset)
 
-    shutil.rmtree(tmphome)
+    tmpTgzName = commands.getoutput('uuidgen')
+    tmpTgz = os.path.join(tmphome, tmpTgzName + '.job.input.tgz')
+    os.chdir(tmphome)
+    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
+    out = proc.communicate("tar -cvzf %s *" % tmpTgz)
+
+    #toSE.put(tmpTgz, dataset)
+
+    #shutil.rmtree(tmphome)
     return

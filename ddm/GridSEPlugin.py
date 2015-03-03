@@ -43,12 +43,12 @@ class GridSEPlugin():
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
         out = proc.communicate('rucio upload --rse %s --scope %s --files %s' % (rse, scope, src))
-        self.ddm.log('upload out: ' + out)
+        #self.ddm.log('upload out: ' + out)
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
         out = proc.communicate('rucio get-metadata %s:%s' % (scope, fname))
-        self.ddm.log('metadata out: ' + out)
+        #self.ddm.log('metadata out: ' + out)
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
         out = proc.communicate('rucio add-files-to-dataset --to %s:%s %s:%s' % (scope, dataset, scope, fname))
-        self.ddm.log('add-to-dataset out: ' + out)
+        #self.ddm.log('add-to-dataset out: ' + out)
