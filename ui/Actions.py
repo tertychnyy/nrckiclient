@@ -62,7 +62,7 @@ def putDataset(file, dataset, auth_key):
     tmpTgzName = commands.getoutput('uuidgen')
     tmpTgz = os.path.join(tmphome, tmpTgzName + '.job.input.tgz')
     os.chdir(tmphome)
-    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=fromSE.myenv)
+    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = proc.communicate("tar -cvzf %s *" % tmpTgz)
 
     #toSE.put(tmpTgz, dataset)
