@@ -2,6 +2,7 @@ import commands
 import os
 import subprocess
 import shutil
+import sys
 from ddm.DDM import SEFactory
 from ui.UserIF import DATA_HOME
 
@@ -38,7 +39,7 @@ def getDataset(dataset, auth_key):
     #os.rmdir(tmphome)
     shutil.rmtree(tmphome)
     return
-
+"""
 def putDataset(file, dataset, auth_key):
     #put file into dataset
     sefactory = getSEFactory()
@@ -65,7 +66,57 @@ def putDataset(file, dataset, auth_key):
     proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out = proc.communicate("tar -cvzf %s *" % tmpTgz)
 
-    #toSE.put(tmpTgz, dataset)
+    toSE.put(tmpTgz, dataset)
 
-    #shutil.rmtree(tmphome)
+    shutil.rmtree(tmphome)
+    return {'fname': tmpTgzName,
+            'dataset': dataset}
+"""
+
+def moveData(params, fromSEparams, toSEparams):
+    if 'tmpdir' not in params.keys():
+        print 'Attribute error: tmpdir'
+        sys.exit(300)
+    tmpdir = params['tmpdir']
+
+    if 'compress' in params.keys():
+        compress = params['compress']
+    else:
+        compress = False
+
+    if 'src' not in fromSEparams.keys():
+        print 'Attribute error: src'
+        sys.exit(300)
+    src = fromSEparams['src']
+
+    if 'dest' not in toSEparams.keys():
+        print 'Attribute error: dest'
+        sys.exit(300)
+    dest = toSEparams['dest']
+
+    sefactory = getSEFactory()
+    fromSE = sefactory.getSE(fromSEparams['label'], fromSEparams)
+    toSE = sefactory.getSE(toSEparams['label'], toSEparams)
+
+    tmphome = "%s/%s" % (DATA_HOME, tmpdir)
+    if not os.path.isdir(tmphome):
+        os.makedirs(tmphome)
+
+    fname = src.split('/')[-1]
+    tmpfile = os.path.join(tmphome, fname)
+    #get file from SE
+    fromSE.get(src, tmpfile)
+
+    if compress:
+        tmpTgzName = commands.getoutput('uuidgen')
+        tmpTgz = os.path.join(tmphome, tmpTgzName + '.input.tgz')
+        os.chdir(tmphome)
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        proc.communicate("tar -cvzf %s *" % tmpTgz)
+        tmpout = tmpTgz
+    else:
+        tmpout = tmpfile
+    #put file to SE
+    toSE.put(tmpout, dest)
+    shutil.rmtree(tmphome)
     return

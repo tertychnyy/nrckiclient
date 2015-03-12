@@ -1,16 +1,42 @@
 import commands
+import os
 import time
-from configobj import ConfigObj
+import sys
 from taskbuffer import JobSpec
 from taskbuffer.FileSpec import FileSpec
+from ui.Actions import moveData
 from userinterface import Client
+LOGFILE='/srv/lsm/log/sendjob.log'
 
-config = ConfigObj('job.conf')
+def log(msg):
+    try:
+        f=open(LOGFILE, 'a')
+        f.write("%s %s %s\n" % (time.ctime(), sessid, msg))
+        f.close()
+        os.chmod(LOGFILE, 0666)
+    except:
+        pass
+
+def fail(errorcode=200,msg=None):
+    if msg:
+        msg='%s %s'%(errorcode, msg)
+    else:
+        msg=str(errorcode)
+    print msg
+    log(msg)
+    sys.exit(errorcode)
 
 class KIJobMaster:
     def __init__(self):
         self.jobList = []
         self.fileList = []
+
+    def putData(self, params=None, fromSEparams=None, toSEparams=None):
+        moveData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+
+    def getData(self):
+        #TODO
+        pass
 
     def getBuildJob(self, injob):
         job = JobSpec()
@@ -111,40 +137,95 @@ class KIJobMaster:
         for x in o:
             print "PandaID=%s" % x[0]
 
+
     def run(self):
         for job in self.jobList:
             jobs = []
-            jobs.append(self.getBuildJob(job))
+            #jobs.append(self.getBuildJob(job))
             #jobs.append(self.getStageInJob(job))
-            jobs.append(self.getExecuteJob(job))
-           # jobs.append(self.getStageOutJob(job))
+            #jobs.append(self.getExecuteJob(job))
+            #jobs.append(self.getStageOutJob(job))
 
-            self.submitJobs(jobs)
+        self.submitJobs(self.jobList)
 
-master = KIJobMaster()
+if __name__ == '__main__':
+    master = KIJobMaster()
 
-job = JobSpec()
-job.jobDefinitionID = int(time.time()) % 10000
-job.jobName = "user.ruslan.%s" % commands.getoutput('uuidgen')
-job.transformation = '/s/ls2/home/users/poyda/bio/runbio_stageout_wr.py'
-job.destinationDBlock = 'user.ruslan.test.%s' % commands.getoutput('uuidgen')
-job.destinationSE = 'ANALY_RRC-KI-HPC'
-job.currentPriority = 1000
-job.prodSourceLabel = 'user'
-job.computingSite = 'ANALY_RRC-KI-HPC'
-job.cloud = 'RU'
-job.prodDBlock = 'mc10_7TeV.105001.pythia_minbias.evgen.EVNT.e574_tid153937_00'
-job.jobsetID = int(time.time())
-master.jobList.append(job)
+    sessid="%s.%s" % ( int(time.time()), os.getpid())
+    scope = 'user.ruslan'
+    dblock = "%s.%s" % (scope, sessid)
 
-fileOT = FileSpec()
-fileOT.lfn = ''
-fileOT.destinationDBlock = 'user.ruslan.test.%s' % commands.getoutput('uuidgen')
-fileOT.destinationSE = job.destinationSE
-fileOT.dataset = job.destinationDBlock
-fileOT.type = 'output'
-fileOT.scope = 'user.ruslan'
-fileOT.GUID = commands.getoutput('uuidgen')
-master.fileList.append(fileOT)
+    log(' '.join(sys.argv))
 
-master.run()
+    args = sys.argv[1:]
+
+    if len(args) < 6:
+        fail(501, 'Incorrect number of arguments')
+    trf = args[0]
+    outfile = args[1]
+    inputType = args[2]
+    inputParam = args[3]
+    outputType = args[4]
+    outputParam = args[5]
+    paramsList = args[6:]
+
+    params = ' '.join(paramsList)
+
+    if not trf.startswith('/s/ls/users/poyda'):
+        fail(500, 'Illegal distr name')
+
+
+    job = JobSpec()
+    job.jobDefinitionID = int(time.time()) % 10000
+    job.jobName = "%s.%s" % (scope, commands.getoutput('uuidgen'))
+    job.transformation = trf
+    job.destinationDBlock = 'panda.destDB.%s' % commands.getoutput('uuidgen')
+    job.destinationSE = 'ANALY_RRC-KI-HPC'
+    job.currentPriority = 1000
+    job.prodSourceLabel = 'user'
+    job.computingSite = 'ANALY_RRC-KI-HPC'
+    job.cloud = 'RU'
+    job.prodDBlock = dblock
+    job.jobsetID = int(time.time())
+
+    job.jobParameters = params
+
+    fileIT = FileSpec()
+    fileIT.lfn = job.jobName + '.input.tgz'
+    fileIT.dataset = job.prodDBlock
+    fileIT.prodDBlock = job.prodDBlock
+    fileIT.type = 'input'
+    fileIT.scope = scope
+    job.addFile(fileIT)
+
+    fileOT = FileSpec()
+    fileOT.lfn = outfile
+    fileOT.destinationDBlock = job.prodDBlock
+    fileOT.destinationSE = job.destinationSE
+    fileOT.dataset = job.prodDBlock
+    fileOT.type = 'output'
+    fileOT.scope = scope
+    fileOT.GUID = commands.getoutput('uuidgen')
+    job.addFile(fileOT)
+
+
+    fileOL = FileSpec()
+    fileOL.lfn = "%s.job.log.tgz" % job.jobName
+    fileOL.destinationDBlock = job.destinationDBlock
+    fileOL.destinationSE = job.destinationSE
+    fileOL.dataset = job.destinationDBlock
+    fileOL.type = 'log'
+    fileOL.scope = 'panda'
+    job.addFile(fileOL)
+
+    fromSEparams = {'label': inputType,
+                    'src': inputParam}
+    toSEparams = {'label': 'grid',
+                  'dest': fileIT.dataset}
+    params = {'tmpdir': fileIT.dataset,
+              'compress': True,
+              'tgzname': fileIT.lfn}
+    master.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+
+    master.jobList.append(job)
+    master.run()
