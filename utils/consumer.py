@@ -36,3 +36,6 @@ if __name__ == '__main__':
         mq = MQ(host='localhost', exchange='lsm')
         mq.startPutDatasetConsumer()
 
+    if len(keys) == 1 and keys[0] == 'method.sendjob':
+        mq = MQ(host='localhost', exchange='lsm')
+        mq.startSendJobConsumer()
