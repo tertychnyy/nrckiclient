@@ -2,7 +2,7 @@ import commands
 import os
 import time
 import sys
-from taskbuffer import JobSpec
+from taskbuffer.JobSpec import JobSpec
 from taskbuffer.FileSpec import FileSpec
 from ui.Actions import moveData
 from userinterface import Client
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     job.computingSite = 'ANALY_RRC-KI-HPC'
     job.cloud = 'RU'
     job.prodDBlock = dblock
-    job.jobsetID = int(time.time())
+    #job.jobsetID = int(time.time())
 
     job.jobParameters = params
 

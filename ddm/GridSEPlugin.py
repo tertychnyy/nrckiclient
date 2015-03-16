@@ -35,11 +35,8 @@ class GridSEPlugin():
         else:
             self.ddm.fail(212, "%s: File doesn't exist" % src)
 
-        #TODO
-        #dest existing
-
-        #TODO
-        #create dataset if not exist
+        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+        out = proc.communicate('rucio add-dataset %s:%s' % (scope, src))
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
         out = proc.communicate('rucio upload --rse %s --scope %s --files %s' % (rse, scope, src))
