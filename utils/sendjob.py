@@ -131,12 +131,12 @@ class KIJobMaster:
         return njob
 
     def submitJobs(self, jobList):
-        print 'Submit jobs'
+        log('Submit jobs')
         s,o = Client.submitJobs(jobList)
-        print "---------------------"
-        print s
+        log("---------------------")
+        log(s)
         for x in o:
-            print "PandaID=%s" % x[0]
+            log("PandaID=%s" % x[0])
 
 
     def run(self):
