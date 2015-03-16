@@ -1,7 +1,5 @@
 import pika
-import threading
 from ui.Actions import *
-from utils import sendjob
 
 BIN_HOME = '/Users/it/PycharmProjects/rrcki-sendjob'
 
@@ -117,7 +115,8 @@ class MQ:
             print body
             params = body.split('&')
 
-            sendjob(params)
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            out = proc.communicate('%s/utils/sendjob.py %s' % (BIN_HOME,' '.join(params)))
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
