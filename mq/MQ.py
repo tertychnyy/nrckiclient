@@ -115,7 +115,7 @@ class MQ:
             print body
             params = body.split('&')
 
-            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=os.environ)
             out = proc.communicate('python %s/utils/sendjob.py %s' % (BIN_HOME,' '.join(params)))
 
             ch.basic_ack(delivery_tag=method.delivery_tag)

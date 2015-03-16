@@ -131,6 +131,7 @@ class KIJobMaster:
         return njob
 
     def submitJobs(self, jobList):
+        print 'Submit jobs'
         s,o = Client.submitJobs(jobList)
         print "---------------------"
         print s
