@@ -1,7 +1,7 @@
 import pika
 from ui.Actions import *
 
-BIN_HOME = '/Users/it/PycharmProjects/rrcki-sendjob'
+BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
 class MQ:
     def __init__(self, host='localhost', exchange='default'):
@@ -116,7 +116,7 @@ class MQ:
             params = body.split('&')
 
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            out = proc.communicate('%s/utils/sendjob.py %s' % (BIN_HOME,' '.join(params)))
+            out = proc.communicate('python %s/utils/sendjob.py %s' % (BIN_HOME,' '.join(params)))
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 

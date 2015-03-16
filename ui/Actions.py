@@ -119,4 +119,4 @@ def moveData(params, fromSEparams, toSEparams):
     #put file to SE
     toSE.put(tmpout, dest)
     shutil.rmtree(tmphome)
-    return
+    return 0

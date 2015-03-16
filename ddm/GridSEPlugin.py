@@ -21,31 +21,35 @@ class GridSEPlugin():
         #print out
 
     def put(self, src, dest):
-        #proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        #out = proc.communicate('python %s/utils/put.py -t %s %s %s' % (BIN_HOME, 'ATLASSCRATCHDISK', src, dest))
-        #print out
+        try:
+            #proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+            #out = proc.communicate('python %s/utils/put.py -t %s %s %s' % (BIN_HOME, 'ATLASSCRATCHDISK', src, dest))
+            #print out
 
-        if os.path.isfile(src):
-            dataset = dest
-            fname = src.split('/')[-1]
-            fsize = int(os.path.getsize(src))
-            fsum = self.ddm.adler32(src)
-            scope = 'user.ruslan'
-            rse = 'RRC-KI-T1_SCRATCHDISK'
-        else:
-            self.ddm.fail(212, "%s: File doesn't exist" % src)
+            if os.path.isfile(src):
+                dataset = dest
+                fname = src.split('/')[-1]
+                fsize = int(os.path.getsize(src))
+                fsum = self.ddm.adler32(src)
+                scope = 'user.ruslan'
+                rse = 'RRC-KI-T1_SCRATCHDISK'
+            else:
+                self.ddm.fail(212, "%s: File doesn't exist" % src)
 
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('rucio add-dataset %s:%s' % (scope, src))
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+            out = proc.communicate('rucio add-dataset %s:%s' % (scope, dataset))
 
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('rucio upload --rse %s --scope %s --files %s' % (rse, scope, src))
-        #self.ddm.log('upload out: ' + out)
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+            out = proc.communicate('rucio upload --rse %s --scope %s --files %s' % (rse, scope, src))
+            #self.ddm.log('upload out: ' + out)
 
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('rucio get-metadata %s:%s' % (scope, fname))
-        #self.ddm.log('metadata out: ' + out)
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+            out = proc.communicate('rucio get-metadata %s:%s' % (scope, fname))
+            #self.ddm.log('metadata out: ' + out)
 
-        proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-        out = proc.communicate('rucio add-files-to-dataset --to %s:%s %s:%s' % (scope, dataset, scope, fname))
-        #self.ddm.log('add-to-dataset out: ' + out)
+            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
+            out = proc.communicate('rucio add-files-to-dataset --to %s:%s %s:%s' % (scope, dataset, scope, fname))
+            #self.ddm.log('add-to-dataset out: ' + out)
+            return 0
+        except:
+            return 1

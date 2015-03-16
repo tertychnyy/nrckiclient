@@ -32,7 +32,7 @@ class KIJobMaster:
         self.fileList = []
 
     def putData(self, params=None, fromSEparams=None, toSEparams=None):
-        moveData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+        return moveData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
 
     def getData(self):
         #TODO
@@ -225,7 +225,13 @@ if __name__ == '__main__':
     params = {'tmpdir': fileIT.dataset,
               'compress': True,
               'tgzname': fileIT.lfn}
-    master.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
-
+    log('MoveDataTry')
+    ec = master.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+    if ec!=0:
+        fail(222, 'MoveDataError')
+    log('MoveDataSuccess')
     master.jobList.append(job)
+    log('Number of jobs: %s' % master.jobList.count())
+    log('SendJobsTry')
     master.run()
+    log('SendJobsSuccess')
