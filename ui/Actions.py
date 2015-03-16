@@ -109,11 +109,13 @@ def moveData(params, fromSEparams, toSEparams):
     fromSE.get(src, tmpfile)
 
     if compress:
-        tmpTgz = os.path.join(tmphome, tmpTgzName + '.input.tgz')
+        tmpTgz = os.path.join(tmphome, tmpTgzName)
+        wd = os.getcwd()
         os.chdir(tmphome)
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc.communicate("tar -cvzf %s *" % tmpTgz)
         tmpout = tmpTgz
+        os.chdir(wd)
     else:
         tmpout = tmpfile
     #put file to SE
