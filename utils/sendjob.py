@@ -231,7 +231,7 @@ if __name__ == '__main__':
         fail(222, 'MoveDataError')
     log('MoveDataSuccess')
     master.jobList.append(job)
-    log('Number of jobs: %s' % master.jobList.count())
+    log('Number of jobs: %s' % len(master.jobList))
     log('SendJobsTry')
     master.run()
     log('SendJobsSuccess')

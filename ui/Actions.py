@@ -79,8 +79,9 @@ def moveData(params, fromSEparams, toSEparams):
         sys.exit(300)
     tmpdir = params['tmpdir']
 
-    if 'compress' in params.keys():
+    if 'compress' in params.keys() and 'tgzname' in params.keys():
         compress = params['compress']
+        tmpTgzName = params['tgzname']
     else:
         compress = False
 
@@ -108,7 +109,6 @@ def moveData(params, fromSEparams, toSEparams):
     fromSE.get(src, tmpfile)
 
     if compress:
-        tmpTgzName = commands.getoutput('uuidgen')
         tmpTgz = os.path.join(tmphome, tmpTgzName + '.input.tgz')
         os.chdir(tmphome)
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
