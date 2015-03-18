@@ -158,6 +158,7 @@ class JobMaster:
         return njob
 
     def submitJobs(self, jobList):
+        print 'Submit jobs'
         log('Submit jobs')
 
         s,o = Client.submitJobs(jobList)
@@ -167,11 +168,12 @@ class JobMaster:
             log("PandaID=%s" % x[0])
 
     def sendjob(self, params):
-        sessid="%s.%s" % ( int(time.time()), os.getpid())
-        scope = 'user.ruslan'
-        dblock = "%s.%s" % (scope, sessid)
+        log('SendJob with params: ' + str(params))
 
-        log(' '.join(params))
+        datasetName = 'panda:panda.destDB.%s' % commands.getoutput('uuidgen')
+        destName    = 'ANALY_RRC-KI-HPC'
+        site = 'ANALY_RRC-KI-HPC'
+        scope = 'user.ruslan'
 
         if len(params) < 6:
             fail(501, 'Incorrect number of arguments')
@@ -183,7 +185,7 @@ class JobMaster:
         outputParam = params[5]
         paramsList = params[6:]
 
-        params = ' '.join(paramsList)
+        jparams = ' '.join(paramsList)
 
         if not trf.startswith('/s/ls/users/poyda'):
             fail(500, 'Illegal distr name')
@@ -191,21 +193,20 @@ class JobMaster:
 
         job = JobSpec()
         job.jobDefinitionID = int(time.time()) % 10000
-        job.jobName = "%s.%s" % (scope, commands.getoutput('uuidgen'))
+        job.jobName = commands.getoutput('uuidgen')
         job.transformation = trf
-        job.destinationDBlock = 'panda.destDB.%s' % commands.getoutput('uuidgen')
-        job.destinationSE = 'ANALY_RRC-KI-HPC'
+        job.destinationDBlock = datasetName
+        job.destinationSE = destName
         job.currentPriority = 1000
         job.prodSourceLabel = 'user'
-        job.computingSite = 'ANALY_RRC-KI-HPC'
+        job.computingSite = site
         job.cloud = 'RU'
-        job.prodDBlock = dblock
-        #job.jobsetID = int(time.time())
+        job.prodDBlock = "%s.%s" % (scope, job.jobName)
 
-        job.jobParameters = params
+        job.jobParameters = jparams
 
         fileIT = FileSpec()
-        fileIT.lfn = job.jobName + '.input.tgz'
+        fileIT.lfn = '$s.$s.input.tgz' % (scope, job.jobName)
         fileIT.dataset = job.prodDBlock
         fileIT.prodDBlock = job.prodDBlock
         fileIT.type = 'input'
@@ -224,7 +225,7 @@ class JobMaster:
 
 
         fileOL = FileSpec()
-        fileOL.lfn = "%s.job.log.tgz" % job.jobName
+        fileOL.lfn = "%s.log.tgz" % job.jobName
         fileOL.destinationDBlock = job.destinationDBlock
         fileOL.destinationSE = job.destinationSE
         fileOL.dataset = job.destinationDBlock

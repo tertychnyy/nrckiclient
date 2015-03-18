@@ -26,7 +26,7 @@ def fail(errorcode=200,msg=None):
 
 class LocalSEPlugin():
     def __init__(self, params=None):
-        print 'Local SEPlugin initialization'
+        pass
 
     def get(self, src, dest):
         if not os.path.isfile(src):

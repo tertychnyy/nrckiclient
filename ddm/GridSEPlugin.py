@@ -6,7 +6,7 @@ BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
 class GridSEPlugin():
     def __init__(self, params=None):
-        print 'GridSEPlugin initialization'
+        pass
 
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]
@@ -35,18 +35,21 @@ class GridSEPlugin():
                 rse = 'RRC-KI-T1_SCRATCHDISK'
             else:
                 self.ddm.fail(212, "%s: File doesn't exist" % src)
-
+            print 'RUCIO: add-dataset'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
             out = proc.communicate('rucio add-dataset %s:%s' % (scope, dataset))
 
+            print 'RUCIO: upload'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
             out = proc.communicate('rucio upload --rse %s --scope %s --files %s' % (rse, scope, src))
             #self.ddm.log('upload out: ' + out)
 
+            print 'RUCIO: get metadata'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
             out = proc.communicate('rucio get-metadata %s:%s' % (scope, fname))
             #self.ddm.log('metadata out: ' + out)
 
+            print 'RUCIO: add-files-to-dataset'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
             out = proc.communicate('rucio add-files-to-dataset --to %s:%s %s:%s' % (scope, dataset, scope, fname))
             #self.ddm.log('add-to-dataset out: ' + out)

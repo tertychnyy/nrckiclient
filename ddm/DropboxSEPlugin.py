@@ -2,7 +2,6 @@ import dropbox
 
 class DropboxSEPlugin():
     def __init__(self, params=None):
-        print 'DropboxSEPlugin initialization'
         self.client = self.getClient(params['auth_key'])
 
     def getClient(self, auth_key):

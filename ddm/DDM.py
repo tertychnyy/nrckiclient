@@ -61,7 +61,7 @@ class DDM:
 
 class SEFactory:
     def __init__(self):
-        print 'SEFactory initialization'
+        pass
 
     def getSE(self, label, params=None):
         try:
@@ -89,7 +89,7 @@ class SEFactory:
 
 class SEPlugin(object):
     def __init__(self, params=None):
-        print 'SEPlugin initialization'
+        pass
 
     def get(self, src, dest, fsize, fsum):
         raise NotImplementedError("SEPlugin.get not implemented")
