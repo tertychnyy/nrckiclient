@@ -37,7 +37,7 @@ class GridSEPlugin():
                 self.ddm.fail(212, "%s: File doesn't exist" % src)
             print 'RUCIO: add-dataset'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-            out = proc.communicate('rucio add-dataset %s:%s' % (scope, dataset))
+            out = proc.communicate('rucio add-dataset %s' % dataset)
 
             print 'RUCIO: upload'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
@@ -51,7 +51,7 @@ class GridSEPlugin():
 
             print 'RUCIO: add-files-to-dataset'
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
-            out = proc.communicate('rucio add-files-to-dataset --to %s:%s %s:%s' % (scope, dataset, scope, fname))
+            out = proc.communicate('rucio add-files-to-dataset --to %s %s:%s' % (dataset, scope, fname))
             #self.ddm.log('add-to-dataset out: ' + out)
             return 0
         except:
