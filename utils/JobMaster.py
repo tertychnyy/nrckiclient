@@ -201,12 +201,12 @@ class JobMaster:
         job.prodSourceLabel = 'user'
         job.computingSite = site
         job.cloud = 'RU'
-        job.prodDBlock = "%s.%s" % (scope, job.jobName)
+        job.prodDBlock = "%s:%s.%s" % (scope, scope, job.jobName)
 
         job.jobParameters = jparams
 
         fileIT = FileSpec()
-        fileIT.lfn = '$s.$s.input.tgz' % (scope, job.jobName)
+        fileIT.lfn = '%s.%s.input.tgz' % (scope, job.jobName)
         fileIT.dataset = job.prodDBlock
         fileIT.prodDBlock = job.prodDBlock
         fileIT.type = 'input'

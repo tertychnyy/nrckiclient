@@ -108,7 +108,7 @@ def moveData(params, fromSEparams, toSEparams):
     #get file from SE
     fromSE.get(src, tmpfile)
 
-    print 'Need compress? ' + compress
+    print 'Need compress? ' + str(compress)
     if compress:
         print 'Compress start: '
         tmpTgz = os.path.join(tmphome, tmpTgzName)
