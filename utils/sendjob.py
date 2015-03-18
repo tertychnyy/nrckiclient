@@ -37,6 +37,32 @@ class KIJobMaster:
     def getData(self):
         #TODO
         pass
+    def getTestJob(self, site):
+        datasetName = 'panda.destDB.%s' % commands.getoutput('uuidgen')
+        destName    = 'ANALY_RRC-KI-HPC'
+
+        job = JobSpec()
+        job.jobDefinitionID   = int(time.time()) % 10000
+        job.jobName           = "%s" % commands.getoutput('uuidgen')
+        job.transformation    = '/s/ls2/users/poyda/bio/runbio_wr.py'
+        job.destinationDBlock = datasetName
+        job.destinationSE     = destName
+        job.currentPriority   = 1000
+        job.prodSourceLabel   = 'user'
+        job.computingSite     = site
+        job.cloud             = 'RU'
+
+        job.jobParameters=""
+
+        fileOL = FileSpec()
+        fileOL.lfn = "%s.job.log.tgz" % job.jobName
+        fileOL.destinationDBlock = job.destinationDBlock
+        fileOL.destinationSE     = job.destinationSE
+        fileOL.dataset           = job.destinationDBlock
+        fileOL.type = 'log'
+        fileOL.scope = 'panda'
+        job.addFile(fileOL)
+        return job
 
     def getBuildJob(self, injob):
         job = JobSpec()
@@ -148,7 +174,7 @@ class KIJobMaster:
             #jobs.append(self.getExecuteJob(job))
             #jobs.append(self.getStageOutJob(job))
 
-        self.submitJobs(self.jobList)
+        self.submitJobs([self.getTestJob()])
 
 def sendjob(params):
     master = KIJobMaster()
@@ -230,11 +256,4 @@ def sendjob(params):
     if ec!=0:
         fail(222, 'MoveDataError')
     master.jobList.append(job)
-    #master.run()
-    log('Submit jobs')
-
-    s,o = Client.submitJobs(master.jobList)
-    log("---------------------")
-    log(s)
-    for x in o:
-        log("PandaID=%s" % x[0])
+    master.run()
