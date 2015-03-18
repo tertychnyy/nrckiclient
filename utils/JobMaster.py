@@ -6,7 +6,7 @@ from taskbuffer.JobSpec import JobSpec
 from taskbuffer.FileSpec import FileSpec
 from ui.Actions import moveData
 import userinterface.Client as Client
-LOGFILE='/srv/lsm/log/sendjob.log'
+LOGFILE='/srv/lsm/log/JobMaster.log'
 
 def log(msg):
     try:
@@ -26,7 +26,7 @@ def fail(errorcode=200,msg=None):
     log(msg)
     sys.exit(errorcode)
 
-class KIJobMaster:
+class JobMaster:
     def __init__(self):
         self.jobList = []
         self.fileList = []
@@ -37,6 +37,7 @@ class KIJobMaster:
     def getData(self):
         #TODO
         pass
+
     def getTestJob(self, site):
         datasetName = 'panda.destDB.%s' % commands.getoutput('uuidgen')
         destName    = 'ANALY_RRC-KI-HPC'
@@ -254,6 +255,6 @@ class KIJobMaster:
             #jobs.append(self.getExecuteJob(job))
             #jobs.append(self.getStageOutJob(job))
 
-        self.submitJobs([self.getTestJob('ANALY_RRC-KI-HPC')])
+        self.submitJobs(self.jobList)
 
 
