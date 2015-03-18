@@ -1,5 +1,6 @@
 import pika
 from ui.Actions import *
+from utils.sendjob import sendjob
 
 BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
@@ -115,8 +116,7 @@ class MQ:
             print body
             params = body.split('&')
 
-            proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=os.environ)
-            out = proc.communicate('python %s/utils/sendjob.py %s' % (BIN_HOME,' '.join(params)))
+            sendjob(params)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 

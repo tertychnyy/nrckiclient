@@ -5,7 +5,7 @@ import sys
 from taskbuffer.JobSpec import JobSpec
 from taskbuffer.FileSpec import FileSpec
 from ui.Actions import moveData
-from userinterface import Client
+import userinterface.Client as Client
 LOGFILE='/srv/lsm/log/sendjob.log'
 
 def log(msg):
@@ -132,6 +132,7 @@ class KIJobMaster:
 
     def submitJobs(self, jobList):
         log('Submit jobs')
+
         s,o = Client.submitJobs(jobList)
         log("---------------------")
         log(s)
@@ -149,26 +150,24 @@ class KIJobMaster:
 
         self.submitJobs(self.jobList)
 
-if __name__ == '__main__':
+def sendjob(params):
     master = KIJobMaster()
 
     sessid="%s.%s" % ( int(time.time()), os.getpid())
     scope = 'user.ruslan'
     dblock = "%s.%s" % (scope, sessid)
 
-    log(' '.join(sys.argv))
+    log(' '.join(params))
 
-    args = sys.argv[1:]
-
-    if len(args) < 6:
+    if len(params) < 6:
         fail(501, 'Incorrect number of arguments')
-    trf = args[0]
-    outfile = args[1]
-    inputType = args[2]
-    inputParam = args[3]
-    outputType = args[4]
-    outputParam = args[5]
-    paramsList = args[6:]
+    trf = params[0]
+    outfile = params[1]
+    inputType = params[2]
+    inputParam = params[3]
+    outputType = params[4]
+    outputParam = params[5]
+    paramsList = params[6:]
 
     params = ' '.join(paramsList)
 
@@ -226,13 +225,16 @@ if __name__ == '__main__':
     params = {'tmpdir': fileIT.dataset,
               'compress': True,
               'tgzname': fileIT.lfn}
-    log('MoveDataTry')
+    log('MoveData')
     ec = master.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
     if ec!=0:
         fail(222, 'MoveDataError')
-    log('MoveDataSuccess')
     master.jobList.append(job)
-    log('Number of jobs: %s' % len(master.jobList))
-    log('SendJobsTry')
-    master.run()
-    log('SendJobsSuccess')
+    #master.run()
+    log('Submit jobs')
+
+    s,o = Client.submitJobs(master.jobList)
+    log("---------------------")
+    log(s)
+    for x in o:
+        log("PandaID=%s" % x[0])
