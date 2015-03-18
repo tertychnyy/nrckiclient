@@ -11,7 +11,7 @@ LOGFILE='/srv/lsm/log/sendjob.log'
 def log(msg):
     try:
         f=open(LOGFILE, 'a')
-        f.write("%s %s %s\n" % (time.ctime(), sessid, msg))
+        f.write("%s %s\n" % (time.ctime(), msg))
         f.close()
         os.chmod(LOGFILE, 0666)
     except:
@@ -165,6 +165,86 @@ class KIJobMaster:
         for x in o:
             log("PandaID=%s" % x[0])
 
+    def sendjob(self, params):
+        sessid="%s.%s" % ( int(time.time()), os.getpid())
+        scope = 'user.ruslan'
+        dblock = "%s.%s" % (scope, sessid)
+
+        log(' '.join(params))
+
+        if len(params) < 6:
+            fail(501, 'Incorrect number of arguments')
+        trf = params[0]
+        outfile = params[1]
+        inputType = params[2]
+        inputParam = params[3]
+        outputType = params[4]
+        outputParam = params[5]
+        paramsList = params[6:]
+
+        params = ' '.join(paramsList)
+
+        if not trf.startswith('/s/ls/users/poyda'):
+            fail(500, 'Illegal distr name')
+
+
+        job = JobSpec()
+        job.jobDefinitionID = int(time.time()) % 10000
+        job.jobName = "%s.%s" % (scope, commands.getoutput('uuidgen'))
+        job.transformation = trf
+        job.destinationDBlock = 'panda.destDB.%s' % commands.getoutput('uuidgen')
+        job.destinationSE = 'ANALY_RRC-KI-HPC'
+        job.currentPriority = 1000
+        job.prodSourceLabel = 'user'
+        job.computingSite = 'ANALY_RRC-KI-HPC'
+        job.cloud = 'RU'
+        job.prodDBlock = dblock
+        #job.jobsetID = int(time.time())
+
+        job.jobParameters = params
+
+        fileIT = FileSpec()
+        fileIT.lfn = job.jobName + '.input.tgz'
+        fileIT.dataset = job.prodDBlock
+        fileIT.prodDBlock = job.prodDBlock
+        fileIT.type = 'input'
+        fileIT.scope = scope
+        job.addFile(fileIT)
+
+        fileOT = FileSpec()
+        fileOT.lfn = outfile
+        fileOT.destinationDBlock = job.prodDBlock
+        fileOT.destinationSE = job.destinationSE
+        fileOT.dataset = job.prodDBlock
+        fileOT.type = 'output'
+        fileOT.scope = scope
+        fileOT.GUID = commands.getoutput('uuidgen')
+        job.addFile(fileOT)
+
+
+        fileOL = FileSpec()
+        fileOL.lfn = "%s.job.log.tgz" % job.jobName
+        fileOL.destinationDBlock = job.destinationDBlock
+        fileOL.destinationSE = job.destinationSE
+        fileOL.dataset = job.destinationDBlock
+        fileOL.type = 'log'
+        fileOL.scope = 'panda'
+        job.addFile(fileOL)
+
+        fromSEparams = {'label': inputType,
+                        'src': inputParam}
+        toSEparams = {'label': 'grid',
+                      'dest': fileIT.dataset}
+        params = {'tmpdir': fileIT.dataset,
+                  'compress': True,
+                  'tgzname': fileIT.lfn}
+        log('MoveData')
+        ec = 0
+        ec = self.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+        if ec!=0:
+            fail(222, 'MoveDataError')
+        self.jobList.append(job)
+        self.run()
 
     def run(self):
         for job in self.jobList:
@@ -174,86 +254,6 @@ class KIJobMaster:
             #jobs.append(self.getExecuteJob(job))
             #jobs.append(self.getStageOutJob(job))
 
-        self.submitJobs([self.getTestJob()])
-
-def sendjob(params):
-    master = KIJobMaster()
-
-    sessid="%s.%s" % ( int(time.time()), os.getpid())
-    scope = 'user.ruslan'
-    dblock = "%s.%s" % (scope, sessid)
-
-    log(' '.join(params))
-
-    if len(params) < 6:
-        fail(501, 'Incorrect number of arguments')
-    trf = params[0]
-    outfile = params[1]
-    inputType = params[2]
-    inputParam = params[3]
-    outputType = params[4]
-    outputParam = params[5]
-    paramsList = params[6:]
-
-    params = ' '.join(paramsList)
-
-    if not trf.startswith('/s/ls/users/poyda'):
-        fail(500, 'Illegal distr name')
+        self.submitJobs([self.getTestJob('ANALY_RRC-KI-HPC')])
 
 
-    job = JobSpec()
-    job.jobDefinitionID = int(time.time()) % 10000
-    job.jobName = "%s.%s" % (scope, commands.getoutput('uuidgen'))
-    job.transformation = trf
-    job.destinationDBlock = 'panda.destDB.%s' % commands.getoutput('uuidgen')
-    job.destinationSE = 'ANALY_RRC-KI-HPC'
-    job.currentPriority = 1000
-    job.prodSourceLabel = 'user'
-    job.computingSite = 'ANALY_RRC-KI-HPC'
-    job.cloud = 'RU'
-    job.prodDBlock = dblock
-    #job.jobsetID = int(time.time())
-
-    job.jobParameters = params
-
-    fileIT = FileSpec()
-    fileIT.lfn = job.jobName + '.input.tgz'
-    fileIT.dataset = job.prodDBlock
-    fileIT.prodDBlock = job.prodDBlock
-    fileIT.type = 'input'
-    fileIT.scope = scope
-    job.addFile(fileIT)
-
-    fileOT = FileSpec()
-    fileOT.lfn = outfile
-    fileOT.destinationDBlock = job.prodDBlock
-    fileOT.destinationSE = job.destinationSE
-    fileOT.dataset = job.prodDBlock
-    fileOT.type = 'output'
-    fileOT.scope = scope
-    fileOT.GUID = commands.getoutput('uuidgen')
-    job.addFile(fileOT)
-
-
-    fileOL = FileSpec()
-    fileOL.lfn = "%s.job.log.tgz" % job.jobName
-    fileOL.destinationDBlock = job.destinationDBlock
-    fileOL.destinationSE = job.destinationSE
-    fileOL.dataset = job.destinationDBlock
-    fileOL.type = 'log'
-    fileOL.scope = 'panda'
-    job.addFile(fileOL)
-
-    fromSEparams = {'label': inputType,
-                    'src': inputParam}
-    toSEparams = {'label': 'grid',
-                  'dest': fileIT.dataset}
-    params = {'tmpdir': fileIT.dataset,
-              'compress': True,
-              'tgzname': fileIT.lfn}
-    log('MoveData')
-    ec = master.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
-    if ec!=0:
-        fail(222, 'MoveDataError')
-    master.jobList.append(job)
-    master.run()

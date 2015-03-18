@@ -1,6 +1,6 @@
 import pika
 from ui.Actions import *
-from utils.sendjob import sendjob
+from utils.sendjob import KIJobMaster
 
 BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
@@ -115,8 +115,8 @@ class MQ:
         def callback(ch, method, properties, body):
             print body
             params = body.split('&')
-
-            sendjob(params)
+            master = KIJobMaster()
+            master.sendjob(params)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
