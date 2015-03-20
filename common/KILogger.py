@@ -10,8 +10,8 @@ class KILogger:
         pass
 
     def getLogger(self, lognm):
-        logh = logging.getLogger("ki.log.%s" % lognm)
-        txth = logging.FileHandler('%s/ki-%s.log' % (logdir, lognm))
+        logh = logging.getLogger("lsm.log.%s" % lognm)
+        txth = logging.FileHandler('%s/lsm-%s.log' % (logdir, lognm))
         txth.setLevel(logging.DEBUG)
         txth.setFormatter(_formatter)
         logh.addHandler(txth)

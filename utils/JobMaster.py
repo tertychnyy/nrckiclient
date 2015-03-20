@@ -161,7 +161,7 @@ class JobMaster:
         scope = 'user.ruslan'
 
         if len(params) < 6:
-            _logger.error(501, 'Incorrect number of arguments')
+            _logger.error('Incorrect number of arguments')
         trf = params[0]
         outfile = params[1]
         inputType = params[2]
@@ -174,7 +174,7 @@ class JobMaster:
         jparams = ' '.join(paramsList)
 
         if not trf.startswith('/s/ls/users/poyda'):
-            _logger.error(500, 'Illegal distr name')
+            _logger.error('Illegal distr name')
 
 
         job = JobSpec()
@@ -228,7 +228,7 @@ class JobMaster:
         ec = 0
         ec = self.putData(params=params, fileList=fileList, fromSEparams=fromSEparams, toSEparams=toSEparams)
         if ec!=0:
-            _logger.error(222, 'MoveDataError')
+            _logger.error('MoveDataError')
         self.jobList.append(job)
         self.run()
 
