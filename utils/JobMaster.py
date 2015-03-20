@@ -17,7 +17,7 @@ class JobMaster:
         self.fileList = []
 
     def putData(self, params=None, fileList=[], fromSEparams=None, toSEparams=None):
-        return moveData(params=params, fileList=[], fromSEparams=fromSEparams, toSEparams=toSEparams)
+        return moveData(params=params, fileList=fileList, fromSEparams=fromSEparams, toSEparams=toSEparams)
 
     def getData(self):
         #TODO
