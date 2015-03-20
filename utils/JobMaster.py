@@ -225,10 +225,10 @@ class JobMaster:
         params = {'compress': True,
                   'tgzname': fileIT.lfn}
         _logger.debug('MoveData')
-        ec = 0
+        ec = (0, '')
         ec = self.putData(params=params, fileList=fileList, fromSEparams=fromSEparams, toSEparams=toSEparams)
-        if ec!=0:
-            _logger.error('MoveDataError')
+        if ec[0] != 0:
+            _logger.error('Move data error: ' + ec[1])
         self.jobList.append(job)
         self.run()
 
