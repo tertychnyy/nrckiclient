@@ -169,7 +169,7 @@ class JobMaster:
         outputType = params[4]
         outputParam = params[5]
         paramsList = params[6:]
-        fileList = []
+        fileList = [inputParam]
 
         jparams = ' '.join(paramsList)
 
