@@ -3,8 +3,11 @@ import os
 import subprocess
 import shutil
 import sys
+from common.KILogger import KILogger
 from ddm.DDM import SEFactory
 from ui.UserIF import DATA_HOME
+
+_logger = KILogger().getLogger("Actions")
 
 def getSEFactory():
     factory = SEFactory()
@@ -42,9 +45,11 @@ def getDataset(dataset, auth_key):
 
 def moveData(params, fileList, fromSEparams, toSEparams):
     if len(fileList) == 0:
+        _logger.debug('No files to move')
         return (0, 'No files to move')
 
-    tmpdir = commands.getoutput('uuidgen')
+    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    tmpdir = proc.communicate("uuidgen")
 
     if 'compress' in params.keys() and 'tgzname' in params.keys():
         compress = params['compress']
@@ -53,7 +58,7 @@ def moveData(params, fileList, fromSEparams, toSEparams):
         compress = False
 
     if 'dest' not in toSEparams.keys():
-        print 'Attribute error: dest'
+        _logger.error('Attribute error: dest')
         return (1, 'Attribute error: dest')
     dest = toSEparams['dest']
 
@@ -80,16 +85,16 @@ def moveData(params, fileList, fromSEparams, toSEparams):
 
     print 'Need compress? ' + str(compress)
     if compress:
-        print 'Compress start: '
+        _logger.debug('Compress start: ')
         tmpTgz = os.path.join(tmphome, tmpTgzName)
-        print 'TGZ file = ' + tmpTgz
+        _logger.debug('TGZ file = ' + tmpTgz)
         wd = os.getcwd()
         os.chdir(tmphome)
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc.communicate("tar -cvzf %s *" % tmpTgz)
         tmpout = [tmpTgz]
         os.chdir(wd)
-        print 'Compress finish:'
+        _logger.debug('Compress finish:')
 
     for tmpfile in tmpout:
         #put file to SE

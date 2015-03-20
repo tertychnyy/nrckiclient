@@ -115,8 +115,7 @@ class MQ:
         def callback(ch, method, properties, body):
             print body
             params = body.split('&')
-            master = JobMaster()
-            master.sendjob(params)
+            JobMaster().sendjob(params)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 

@@ -153,7 +153,7 @@ class JobMaster:
             _logger.debug("PandaID=%s" % x[0])
 
     def sendjob(self, params):
-        _logger.debug('SendJob with params: ' + str(params))
+        _logger.debug('SendJob with params: ' + ' '.join(params))
 
         datasetName = 'panda:panda.destDB.%s' % commands.getoutput('uuidgen')
         destName    = 'ANALY_RRC-KI-HPC'
@@ -162,6 +162,7 @@ class JobMaster:
 
         if len(params) < 6:
             _logger.error('Incorrect number of arguments')
+            return
         trf = params[0]
         outfile = params[1]
         inputType = params[2]
@@ -169,12 +170,14 @@ class JobMaster:
         outputType = params[4]
         outputParam = params[5]
         paramsList = params[6:]
-        fileList = [inputParam]
+        fileList = []
+        fileList.append(inputParam)
 
         jparams = ' '.join(paramsList)
 
         if not trf.startswith('/s/ls/users/poyda'):
             _logger.error('Illegal distr name')
+            return
 
 
         job = JobSpec()
@@ -229,6 +232,7 @@ class JobMaster:
         ec = self.putData(params=params, fileList=fileList, fromSEparams=fromSEparams, toSEparams=toSEparams)
         if ec[0] != 0:
             _logger.error('Move data error: ' + ec[1])
+            return
         self.jobList.append(job)
         self.run()
 
