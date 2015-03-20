@@ -1,6 +1,6 @@
 import pika
 from ui.Actions import *
-from utils.JobMaster import JobMaster
+from ui.JobMaster import JobMaster
 
 BIN_HOME = '/srv/lsm/rrcki-sendjob'
 

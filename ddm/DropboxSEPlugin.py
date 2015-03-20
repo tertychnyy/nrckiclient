@@ -1,6 +1,8 @@
 import dropbox
 import os
+from common.KILogger import KILogger
 
+_logger = KILogger().getLogger("DropboxSEPlugin")
 
 class DropboxSEPlugin():
     def __init__(self, params=None):
@@ -32,10 +34,10 @@ class DropboxSEPlugin():
         f, metadata = self.client.get_file_and_metadata(src)
         with f:
             out.write(f.read())
-        print 'downloaded: ' + metadata
+        _logger.debug('downloaded: ' + metadata)
 
     def put(self, src, dest):
         #put file from local se to dropbox
         f = open(src, 'rb')
         response = self.client.put_file(dest, f)
-        print 'uploaded: ', response
+        _logger.debug('uploaded: ', response)

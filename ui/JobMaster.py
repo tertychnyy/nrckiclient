@@ -7,8 +7,6 @@ from taskbuffer.FileSpec import FileSpec
 from common.KILogger import KILogger
 from ui.Actions import moveData
 import userinterface.Client as Client
-LOGFILE='/srv/lsm/log/JobMaster.log'
-
 _logger = KILogger().getLogger("JobMaster")
 
 class JobMaster:
@@ -18,10 +16,6 @@ class JobMaster:
 
     def putData(self, params=None, fileList=[], fromSEparams=None, toSEparams=None):
         return moveData(params=params, fileList=fileList, params1=fromSEparams, params2=toSEparams)
-
-    def getData(self):
-        #TODO
-        pass
 
     def getTestJob(self, site):
         datasetName = 'panda.destDB.%s' % commands.getoutput('uuidgen')
@@ -49,98 +43,6 @@ class JobMaster:
         fileOL.scope = 'panda'
         job.addFile(fileOL)
         return job
-
-    def getBuildJob(self, injob):
-        job = JobSpec()
-        job.jobDefinitionID = int(time.time()) % 10000
-        job.jobName = '%s.1' % injob.jobName
-        job.transformation = '/s/ls2/home/users/poyda/bio-3/build.py'
-        job.destinationDBlock = 'panda.destDB.%s' % commands.getoutput('uuidgen')
-        job.destinationSE = injob.destinationSE
-        job.currentPriority = 1000
-        job.prodSourceLabel = injob.prodSourceLabel
-        job.computingSite = injob.computingSite
-        job.cloud = injob.cloud
-        #job.jobsetID = injob.jobsetID
-        job.jobParameters = ''
-
-        fileOT = FileSpec()
-        fileOT.lfn = '%s.lib.tgz' % job.jobName
-        fileOT.destinationDBlock = '%s.1' % injob.destinationDBlock
-        fileOT.destinationSE = job.destinationSE
-        fileOT.dataset = job.destinationDBlock
-        fileOT.type = 'output'
-        fileOT.scope = 'panda'
-        fileOT.GUID = commands.getoutput('uuidgen')
-        job.addFile(fileOT)
-
-        fileOL = FileSpec()
-        fileOL.lfn = "%s.log.tgz" % job.jobName
-        fileOL.destinationDBlock = job.destinationDBlock
-        fileOL.destinationSE = job.destinationSE
-        fileOL.dataset = job.destinationDBlock
-        fileOL.type = 'log'
-        fileOL.scope = 'panda'
-        job.addFile(fileOL)
-
-        return job
-
-    def getStageInJob(self, injob):
-        job = JobSpec()
-        return job
-
-    def getExecuteJob(self, injob):
-        job = JobSpec()
-        job.jobDefinitionID = int(time.time()) % 10000
-        job.jobName = '%s.2' % injob.jobName
-        job.transformation = '/s/ls2/home/users/poyda/bio-3/execute.py'
-        job.destinationDBlock = 'panda.destDB.%s' % commands.getoutput('uuidgen')
-        job.destinationSE = injob.destinationSE
-        job.currentPriority = 1000
-        job.prodSourceLabel = injob.prodSourceLabel
-        job.computingSite = injob.computingSite
-        job.cloud = injob.cloud
-        #job.jobsetID = injob.jobsetID
-        job.jobParameters = ''
-
-        fileIT = FileSpec()
-        fileIT.lfn = '%s.1.lib.tgz' % injob.jobName
-        fileIT.dataset = '%s.1' % injob.destinationDBlock
-        fileIT.prodDBlock = '%s.1' % injob.destinationDBlock
-        fileIT.type = 'input'
-        job.addFile(fileIT)
-
-        for file in self.fileList:
-            if file.type == 'input':
-                continue
-
-            if file.type == 'output':
-                continue
-
-        fileOT = FileSpec()
-        fileOT.lfn = '%s.lib.tgz' % job.jobName
-        fileOT.destinationDBlock = '%s.2' % injob.destinationDBlock
-        fileOT.destinationSE = job.destinationSE
-        fileOT.dataset = job.destinationDBlock
-        fileOT.type = 'output'
-        fileOT.scope = 'panda'
-        fileOT.GUID = commands.getoutput('uuidgen')
-        job.addFile(fileOT)
-
-        fileOL = FileSpec()
-        fileOL.lfn = "%s.log.tgz" % job.jobName
-        fileOL.destinationDBlock = job.destinationDBlock
-        fileOL.destinationSE = job.destinationSE
-        fileOL.dataset = job.destinationDBlock
-        fileOL.type = 'log'
-        fileOL.scope = 'panda'
-        job.addFile(fileOL)
-
-        return job
-
-    def getStageOutJob(self, injob):
-        njob = JobSpec()
-        return njob
 
     def submitJobs(self, jobList):
         print 'Submit jobs'

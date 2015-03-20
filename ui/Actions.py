@@ -2,7 +2,6 @@ import commands
 import os
 import subprocess
 import shutil
-import sys
 from common.KILogger import KILogger
 from ddm.DDM import SEFactory
 from ui.UserIF import DATA_HOME
@@ -48,8 +47,7 @@ def moveData(params, fileList, params1, params2):
         _logger.debug('No files to move')
         return (0, 'No files to move')
 
-    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    tmpdir = proc.communicate("uuidgen")[0]
+    tmpdir = commands.getoutput("uuidgen")
 
     if 'compress' in params.keys() and 'tgzname' in params.keys():
         compress = params['compress']
@@ -82,6 +80,7 @@ def moveData(params, fileList, params1, params2):
         tmpfile = os.path.join(tmphome, fname)
         fromSE.get(f, tmphome)
         tmpout.append(tmpfile)
+
 
     print 'Need compress? ' + str(compress)
     if compress:

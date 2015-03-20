@@ -1,30 +1,13 @@
 import os
 import sys
 import time
+from common.KILogger import KILogger
 from mq.MQ import MQ
-LOGFILE='/var/log/lsm/lsm-consumer.log'
-
-def log(msg):
-    try:
-        f=open(LOGFILE, 'a')
-        f.write("%s %s %s\n" % (time.ctime(), os.getpid(), msg))
-        f.close()
-        os.chmod(LOGFILE, 0666)
-    except:
-        pass
-
-def fail(errorcode=200,msg=None):
-    if msg:
-        msg='%s %s'%(errorcode, msg)
-    else:
-        msg=str(errorcode)
-    print msg
-    log(msg)
-    sys.exit(errorcode)
+_logger = KILogger().getLogger("comsumer")
 
 if __name__ == '__main__':
 
-    log(' '.join(sys.argv))
+    _logger.debug(' '.join(sys.argv))
 
     keys = sys.argv[1:]
 
