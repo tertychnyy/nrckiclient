@@ -4,27 +4,12 @@ import time
 import sys
 from taskbuffer.JobSpec import JobSpec
 from taskbuffer.FileSpec import FileSpec
+from common.KILogger import KILogger
 from ui.Actions import moveData
 import userinterface.Client as Client
 LOGFILE='/srv/lsm/log/JobMaster.log'
 
-def log(msg):
-    try:
-        f=open(LOGFILE, 'a')
-        f.write("%s %s\n" % (time.ctime(), msg))
-        f.close()
-        os.chmod(LOGFILE, 0666)
-    except:
-        pass
-
-def fail(errorcode=200,msg=None):
-    if msg:
-        msg='%s %s'%(errorcode, msg)
-    else:
-        msg=str(errorcode)
-    print msg
-    log(msg)
-    sys.exit(errorcode)
+_logger = KILogger().getLogger("JobMaster")
 
 class JobMaster:
     def __init__(self):
@@ -159,16 +144,16 @@ class JobMaster:
 
     def submitJobs(self, jobList):
         print 'Submit jobs'
-        log('Submit jobs')
+        _logger.debug('Submit jobs')
 
         s,o = Client.submitJobs(jobList)
-        log("---------------------")
-        log(s)
+        _logger.debug("---------------------")
+        _logger.debug(s)
         for x in o:
-            log("PandaID=%s" % x[0])
+            _logger.debug("PandaID=%s" % x[0])
 
     def sendjob(self, params):
-        log('SendJob with params: ' + str(params))
+        _logger.debug('SendJob with params: ' + str(params))
 
         datasetName = 'panda:panda.destDB.%s' % commands.getoutput('uuidgen')
         destName    = 'ANALY_RRC-KI-HPC'
@@ -176,7 +161,7 @@ class JobMaster:
         scope = 'user.ruslan'
 
         if len(params) < 6:
-            fail(501, 'Incorrect number of arguments')
+            _logger.error(501, 'Incorrect number of arguments')
         trf = params[0]
         outfile = params[1]
         inputType = params[2]
@@ -189,7 +174,7 @@ class JobMaster:
         jparams = ' '.join(paramsList)
 
         if not trf.startswith('/s/ls/users/poyda'):
-            fail(500, 'Illegal distr name')
+            _logger.error(500, 'Illegal distr name')
 
 
         job = JobSpec()
@@ -239,11 +224,11 @@ class JobMaster:
                       'dest': fileIT.dataset}
         params = {'compress': True,
                   'tgzname': fileIT.lfn}
-        log('MoveData')
+        _logger.debug('MoveData')
         ec = 0
         ec = self.putData(params=params, fileList=fileList, fromSEparams=fromSEparams, toSEparams=toSEparams)
         if ec!=0:
-            fail(222, 'MoveDataError')
+            _logger.error(222, 'MoveDataError')
         self.jobList.append(job)
         self.run()
 

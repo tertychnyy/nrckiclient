@@ -2,27 +2,9 @@ import os
 import time
 import sys
 import shutil
-from utils.get import adler32
+from common.KILogger import KILogger
 
-LOGFILE='/srv/lsm/log/get.log'
-
-def log(msg):
-    try:
-        f=open(LOGFILE, 'a')
-        f.write("%s %s\n" % (time.ctime(), msg))
-        f.close()
-        os.chmod(LOGFILE, 0666)
-    except:
-        pass
-
-def fail(errorcode=200,msg=None):
-    if msg:
-        msg='%s %s'%(errorcode, msg)
-    else:
-        msg=str(errorcode)
-    print msg
-    log(msg)
-    sys.exit(errorcode)
+_logger = KILogger().getLogger("LocalSEPlugin")
 
 class LocalSEPlugin():
     def __init__(self, params=None):
@@ -31,16 +13,16 @@ class LocalSEPlugin():
     def get(self, src, dest):
         try:
             if not os.path.isfile(src):
-                fail(210, "%s: File not found" %src)
+                _logger.error(210, "%s: File not found" %src)
 
             shutil.move(src, dest)
         except:
-            fail(201, 'Unable to move:%s %s' % (src, dest))
+            _logger.error(201, 'Unable to move:%s %s' % (src, dest))
 
 
     def put(self, src, dest):
         if not os.path.isfile(src):
-            fail(210, "%s: File not found" %src)
+            _logger.error(210, "%s: File not found" %src)
 
         self.get(src, dest)
         shutil.rmtree(os.path.join(src.split('/')[:-1]))
