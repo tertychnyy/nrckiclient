@@ -43,13 +43,13 @@ def getDataset(dataset, auth_key):
     shutil.rmtree(tmphome)
     return
 
-def moveData(params, fileList, fromSEparams, toSEparams):
+def moveData(params, fileList, params1, params2):
     if len(fileList) == 0:
         _logger.debug('No files to move')
         return (0, 'No files to move')
 
     proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    tmpdir = proc.communicate("uuidgen")
+    tmpdir = proc.communicate("uuidgen")[0]
 
     if 'compress' in params.keys() and 'tgzname' in params.keys():
         compress = params['compress']
@@ -57,14 +57,14 @@ def moveData(params, fileList, fromSEparams, toSEparams):
     else:
         compress = False
 
-    if 'dest' not in toSEparams.keys():
+    if 'dest' not in params2.keys():
         _logger.error('Attribute error: dest')
         return (1, 'Attribute error: dest')
-    dest = toSEparams['dest']
+    dest = params2['dest']
 
     sefactory = getSEFactory()
-    fromSE = sefactory.getSE(fromSEparams['label'], fromSEparams)
-    toSE = sefactory.getSE(toSEparams['label'], toSEparams)
+    fromSE = sefactory.getSE(params1['label'], params1)
+    toSE = sefactory.getSE(params2['label'], params2)
 
     tmphome = "%s/%s" % (DATA_HOME, tmpdir)
     if not os.path.isdir(tmphome):
@@ -80,7 +80,7 @@ def moveData(params, fileList, fromSEparams, toSEparams):
             fname = f
 
         tmpfile = os.path.join(tmphome, fname)
-        fromSE.get(f, tmpfile)
+        fromSE.get(f, tmphome)
         tmpout.append(tmpfile)
 
     print 'Need compress? ' + str(compress)
@@ -96,9 +96,9 @@ def moveData(params, fileList, fromSEparams, toSEparams):
         os.chdir(wd)
         _logger.debug('Compress finish:')
 
-    for tmpfile in tmpout:
+    for f in tmpout:
         #put file to SE
-        toSE.put(tmpfile, dest)
+        toSE.put(f, dest)
 
     shutil.rmtree(tmphome)
     return (0, 'moveData success')
