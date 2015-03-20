@@ -72,9 +72,9 @@ def moveData(params, fileList, fromSEparams, toSEparams):
 
     tmpout = []
     for f in fileList:
-        if f.contains(':'):
+        if ':' in f:
             fname = f.split(':')[1]
-        elif f.contains('/'):
+        elif '/' in f:
             fname = f.split('/')[-1]
         else:
             fname = f
