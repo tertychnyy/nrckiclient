@@ -29,46 +29,13 @@ class LocalSEPlugin():
         pass
 
     def get(self, src, dest):
-        if not os.path.isfile(src):
-            fail(210, "%s: File not found" %src)
-
-        fname = src.split('/')[-1]
-        fsize = int(os.path.getsize(src))
-        fsum = adler32(src)
-
-        ## Check for 'file exists'
-        if os.path.isfile(dest):
-            ### * 211 - File already exist and is different (size/checksum).
-            ### * 212 - File already exist and is the same as the source (same size/checksum)
-
-            size = None
-            if fsize:
-                try:
-                    size = int(os.path.getsize(dest))
-                except:
-                    size = "UNKNOWN"
-            sum = None
-            if fsum:
-                try:
-                    fchecksumval = adler32(dest)
-                except Exception,e:
-                    fchecksumval = "UNKNOWN"
-                    log("%s failed with: %s" % ('adler32', e) )
-            if fchecksumval != fsum or fsize != size:
-                fail(211, "%s size:%s %s, checksum: %s %s"%
-                     (dest, fsize, size, fchecksumval, fsum))
-            else:
-                fail(212, "%s: File exists" % dest)
-
-        if dest.endswith('/'):
-            destdir = dest
-        else:
-            destdir = dest[:-(len(fname)+1)]
-
         try:
-            shutil.copy2(src, destdir)
+            if not os.path.isfile(src):
+                fail(210, "%s: File not found" %src)
+
+            shutil.move(src, dest)
         except:
-            fail(201, 'Unable to move:%s %s' % (src, destdir))
+            fail(201, 'Unable to move:%s %s' % (src, dest))
 
 
     def put(self, src, dest):

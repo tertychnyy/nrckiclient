@@ -1,4 +1,6 @@
 import dropbox
+import os
+
 
 class DropboxSEPlugin():
     def __init__(self, params=None):
@@ -23,12 +25,14 @@ class DropboxSEPlugin():
         return dropbox.client.DropboxClient(auth_key)
 
     def get(self, src, dest):
+        fname = src.split('/')[-1]
+
         #get file from dropbox to local se
-        out = open(dest, 'wb')
+        out = open(os.path.join(dest, fname), 'wb')
         f, metadata = self.client.get_file_and_metadata(src)
         with f:
             out.write(f.read())
-        print metadata
+        print 'downloaded: ' + metadata
 
     def put(self, src, dest):
         #put file from local se to dropbox

@@ -31,8 +31,8 @@ class JobMaster:
         self.jobList = []
         self.fileList = []
 
-    def putData(self, params=None, fromSEparams=None, toSEparams=None):
-        return moveData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+    def putData(self, params=None, fileList=[], fromSEparams=None, toSEparams=None):
+        return moveData(params=params, fileList=[], fromSEparams=fromSEparams, toSEparams=toSEparams)
 
     def getData(self):
         #TODO
@@ -184,6 +184,7 @@ class JobMaster:
         outputType = params[4]
         outputParam = params[5]
         paramsList = params[6:]
+        fileList = []
 
         jparams = ' '.join(paramsList)
 
@@ -233,16 +234,14 @@ class JobMaster:
         fileOL.scope = 'panda'
         job.addFile(fileOL)
 
-        fromSEparams = {'label': inputType,
-                        'src': inputParam}
+        fromSEparams = {'label': inputType}
         toSEparams = {'label': 'grid',
                       'dest': fileIT.dataset}
-        params = {'tmpdir': fileIT.dataset,
-                  'compress': True,
+        params = {'compress': True,
                   'tgzname': fileIT.lfn}
         log('MoveData')
         ec = 0
-        ec = self.putData(params=params, fromSEparams=fromSEparams, toSEparams=toSEparams)
+        ec = self.putData(params=params, fileList=fileList, fromSEparams=fromSEparams, toSEparams=toSEparams)
         if ec!=0:
             fail(222, 'MoveDataError')
         self.jobList.append(job)

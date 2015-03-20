@@ -39,45 +39,12 @@ def getDataset(dataset, auth_key):
     #os.rmdir(tmphome)
     shutil.rmtree(tmphome)
     return
-"""
-def putDataset(file, dataset, auth_key):
-    #put file into dataset
-    sefactory = getSEFactory()
 
-    #se initialization
-    #fromSE = sefactory.getSE('dropbox', params={'auth_key': auth_key})
-    fromSE = sefactory.getSE('local', params=None)
-    toSE = sefactory.getSE('grid', params=None)
+def moveData(params, fileList, fromSEparams, toSEparams):
+    if len(fileList) == 0:
+        return (0, 'No files to move')
 
-    tmphome = "%s/%s" % (DATA_HOME, dataset)
-    #os.mkdir(tmphome)
-    if not os.path.isdir(tmphome):
-        os.makedirs(tmphome)
-
-
-    fname = file.split('/')[-1]
-    tmpfile = os.path.join(tmphome, fname)
-
-    fromSE.get(file, tmpfile)
-
-    tmpTgzName = commands.getoutput('uuidgen')
-    tmpTgz = os.path.join(tmphome, tmpTgzName + '.job.input.tgz')
-    os.chdir(tmphome)
-    proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    out = proc.communicate("tar -cvzf %s *" % tmpTgz)
-
-    toSE.put(tmpTgz, dataset)
-
-    shutil.rmtree(tmphome)
-    return {'fname': tmpTgzName,
-            'dataset': dataset}
-"""
-
-def moveData(params, fromSEparams, toSEparams):
-    if 'tmpdir' not in params.keys():
-        print 'Attribute error: tmpdir'
-        sys.exit(300)
-    tmpdir = params['tmpdir']
+    tmpdir = commands.getoutput('uuidgen')
 
     if 'compress' in params.keys() and 'tgzname' in params.keys():
         compress = params['compress']
@@ -85,14 +52,9 @@ def moveData(params, fromSEparams, toSEparams):
     else:
         compress = False
 
-    if 'src' not in fromSEparams.keys():
-        print 'Attribute error: src'
-        sys.exit(300)
-    src = fromSEparams['src']
-
     if 'dest' not in toSEparams.keys():
         print 'Attribute error: dest'
-        sys.exit(300)
+        return (1, 'Attribute error: dest')
     dest = toSEparams['dest']
 
     sefactory = getSEFactory()
@@ -103,10 +65,18 @@ def moveData(params, fromSEparams, toSEparams):
     if not os.path.isdir(tmphome):
         os.makedirs(tmphome)
 
-    fname = src.split('/')[-1]
-    tmpfile = os.path.join(tmphome, fname)
-    #get file from SE
-    fromSE.get(src, tmpfile)
+    tmpout = []
+    for f in fileList:
+        if f.contains(':'):
+            fname = f.split(':')[1]
+        elif f.contains('/'):
+            fname = f.split('/')[-1]
+        else:
+            fname = f
+
+        tmpfile = os.path.join(tmphome, fname)
+        fromSE.get(f, tmpfile)
+        tmpout.append(tmpfile)
 
     print 'Need compress? ' + str(compress)
     if compress:
@@ -117,12 +87,13 @@ def moveData(params, fromSEparams, toSEparams):
         os.chdir(tmphome)
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc.communicate("tar -cvzf %s *" % tmpTgz)
-        tmpout = tmpTgz
+        tmpout = [tmpTgz]
         os.chdir(wd)
         print 'Compress finish:'
-    else:
-        tmpout = tmpfile
-    #put file to SE
-    toSE.put(tmpout, dest)
+
+    for tmpfile in tmpout:
+        #put file to SE
+        toSE.put(tmpfile, dest)
+
     shutil.rmtree(tmphome)
-    return 0
+    return (0, 'moveData success')
