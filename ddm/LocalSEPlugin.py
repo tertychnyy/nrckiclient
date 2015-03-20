@@ -15,7 +15,7 @@ class LocalSEPlugin():
             if not os.path.isfile(src):
                 _logger.error("%s: File not found" %src)
 
-            shutil.move(src, dest)
+            shutil.copy2(src, dest)
         except:
             _logger.error('Unable to move:%s %s' % (src, dest))
 
