@@ -82,7 +82,7 @@ def moveData(params, fileList, params1, params2):
         tmpout.append(tmpfile)
 
 
-    print 'Need compress? ' + str(compress)
+    _logger.debug('Need compress? ' + str(compress))
     if compress:
         _logger.debug('Compress start: ')
         tmpTgz = os.path.join(tmphome, tmpTgzName)

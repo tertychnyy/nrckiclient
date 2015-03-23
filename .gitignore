@@ -1,2 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
 *.pyc
+/www/static/css
+/www/static/fonts
+/www/static/js
