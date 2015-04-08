@@ -7,7 +7,7 @@ from common.KILogger import KILogger
 _logger = KILogger().getLogger("LocalSEPlugin")
 
 class LocalSEPlugin():
-    def __init__(self, params=None):
+    def __init__(self, params={}):
         pass
 
     def get(self, src, dest):

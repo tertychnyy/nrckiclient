@@ -16,3 +16,4 @@ class KILogger:
         txth.setFormatter(_formatter)
         logh.addHandler(txth)
         return logh
+

@@ -42,7 +42,7 @@ def getDataset(dataset, auth_key):
     shutil.rmtree(tmphome)
     return
 
-def moveData(params, fileList, params1, params2):
+def moveData(params, fileList, fromType, fromParams, toType, toParams):
     if len(fileList) == 0:
         _logger.debug('No files to move')
         return (0, 'No files to move')
@@ -55,14 +55,14 @@ def moveData(params, fileList, params1, params2):
     else:
         compress = False
 
-    if 'dest' not in params2.keys():
+    if 'dest' not in toParams.keys():
         _logger.error('Attribute error: dest')
         return (1, 'Attribute error: dest')
-    dest = params2['dest']
+    dest = toParams['dest']
 
     sefactory = getSEFactory()
-    fromSE = sefactory.getSE(params1['label'], params1)
-    toSE = sefactory.getSE(params2['label'], params2)
+    fromSE = sefactory.getSE(fromType, fromParams)
+    toSE = sefactory.getSE(toType, toParams)
 
     tmphome = "%s/%s" % (DATA_HOME, tmpdir)
     if not os.path.isdir(tmphome):
@@ -82,7 +82,7 @@ def moveData(params, fileList, params1, params2):
         tmpout.append(tmpfile)
 
 
-    _logger.debug('Need compress? ' + str(compress))
+    print 'Need compress? ' + str(compress)
     if compress:
         _logger.debug('Compress start: ')
         tmpTgz = os.path.join(tmphome, tmpTgzName)

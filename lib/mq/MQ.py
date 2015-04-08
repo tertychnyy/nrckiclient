@@ -1,6 +1,5 @@
 import pika
-from ui.Actions import *
-from ui.JobMaster import JobMaster
+import json
 
 BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
@@ -52,7 +51,7 @@ class MQ:
             print body
             dataset, auth_key = body.split('&')
 
-            getDataset(dataset, auth_key)
+            #getDataset(dataset, auth_key)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -84,7 +83,7 @@ class MQ:
             print body
             file, dataset, auth_key = body.split('&')
 
-            putDataset(file, dataset, auth_key)
+            #putDataset(file, dataset, auth_key)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -94,6 +93,8 @@ class MQ:
         channel.start_consuming()
 
     def startSendJobConsumer(self):
+        from ui.JobMaster import JobMaster
+
         binding_keys = ['method.sendjob']
 
         channel, connection = self.getClient(self.host)
@@ -114,8 +115,9 @@ class MQ:
 
         def callback(ch, method, properties, body):
             print body
-            params = body.split('&')
-            JobMaster().sendjob(params)
+            data = json.loads(body)
+            print 'data = ' + str(data)
+            JobMaster().sendjob(data)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
 

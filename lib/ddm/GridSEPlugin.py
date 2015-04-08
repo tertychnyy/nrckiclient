@@ -8,19 +8,19 @@ BIN_HOME = '/srv/lsm/rrcki-sendjob'
 _logger = KILogger().getLogger("GridSEPlugin")
 
 class GridSEPlugin():
-    def __init__(self, params=None):
+    def __init__(self, params={}):
         pass
-
+        
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         env = proc.communicate(". %s/setup.sh; python -c 'import os; print os.environ'" % BIN_HOME)[0][:-1]
         env = env.split('\n')[-1]
         import ast
         self.myenv = ast.literal_eval(env)
-
+            
     def get(self, src, dest):
         try:
             scope, fname = src.split(':')
-
+                
             #make dest dir
             try:
                 os.makedirs(dest)
@@ -28,7 +28,7 @@ class GridSEPlugin():
                 if exc.errno == errno.EEXIST and os.path.isdir(dest):
                     pass
                 else: raise
-
+            
             _logger.debug('RUCIO: download %s' % src)
             proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, env=self.myenv)
             out = proc.communicate('rucio download --dir %s %s' % (dest, src))

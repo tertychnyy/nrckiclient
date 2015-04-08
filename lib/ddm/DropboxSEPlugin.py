@@ -5,7 +5,7 @@ from common.KILogger import KILogger
 _logger = KILogger().getLogger("DropboxSEPlugin")
 
 class DropboxSEPlugin():
-    def __init__(self, params=None):
+    def __init__(self, params={}):
         self.client = self.getClient(params['auth_key'])
 
     def getClient(self, auth_key):

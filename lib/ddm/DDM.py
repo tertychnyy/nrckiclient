@@ -4,7 +4,7 @@ class SEFactory:
     def __init__(self):
         pass
 
-    def getSE(self, label, params=None):
+    def getSE(self, label, params={}):
         try:
             if label not in ['dropbox', 'grid', 'local']:
                 raise AttributeError("Attribute 'label' error: Not found in list")
@@ -37,5 +37,3 @@ class SEPlugin(object):
 
     def put(self, src, dest):
         raise NotImplementedError("SEPlugin.put not implemented")
-
-
