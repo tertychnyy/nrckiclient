@@ -1,5 +1,5 @@
 #!/bin/bash
-source /srv/lsm/.venv/rrcki-sendjob/bin/activate
+source /srv/webclient/bin/activate
 export PYTHONPATH=/srv/panda/lib/python2.6/site-packages/pandaserver:/srv/panda/lib/python2.6/site-packages/pandacommon:/srv/lsm/rrcki-sendjob/lib:/cvmfs/atlas.cern.ch/repo/sw/ddm/latest/DQ2Clients/opt/dq2/lib/:/cvmfs/atlas.cern.ch/repo/sw/ddm/rucio-clients/latest/lib/python2.6/site-packages:/cvmfs/atlas.cern.ch/repo/sw/ddm/rucio-clients/latest/externals/kerberos/lib.slc6-x86_64-2.6:/cvmfs/atlas.cern.ch/repo/sw/ddm/rucio-clients/latest/externals/kerberos/lib.slc6-i686-2.6:$PYTHONPATH
 export PYTHONPATH=/srv/pandaclient/lib:$PYTHONPATH
 export PATH=/cvmfs/atlas.cern.ch/repo/sw/ddm/latest/DQ2Clients/opt/dq2/bin/:$PATH
