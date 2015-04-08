@@ -1,7 +1,6 @@
 import pika
 import json
 
-BIN_HOME = '/srv/lsm/rrcki-sendjob'
 
 class MQ:
     def __init__(self, host='localhost', exchange='default'):

@@ -4,7 +4,6 @@ import errno
 from common.KILogger import KILogger
 from common.utils import adler32
 
-BIN_HOME = '/srv/lsm/rrcki-sendjob'
 _logger = KILogger().getLogger("GridSEPlugin")
 
 class GridSEPlugin():

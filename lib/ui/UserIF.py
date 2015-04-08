@@ -1,9 +1,5 @@
 import sys
 
-VENV_HOME = '/srv/lsm/.venv/rrcki-sendjob'
-BIN_HOME = '/srv/lsm/rrcki-sendjob'
-DATA_HOME = '/srv/lsm/data'
-
 class UserIF:
     def __init__(self):
         pass

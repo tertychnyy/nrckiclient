@@ -1,5 +1,3 @@
-BIN_HOME='/srv/lsm/rrcki-sendjob'
-
 class SEFactory:
     def __init__(self):
         pass
