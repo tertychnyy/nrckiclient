@@ -4,10 +4,9 @@ class UserIF:
     def __init__(self):
         pass
 
-    def sendJob(req, params):
+    def sendJob(req, message):
         from mq.MQ import MQ
         routing_key = 'method.sendjob'
-        message = '&'.join(params)
 
         mq = MQ(host='localhost', exchange='lsm')
         mq.sendMessage(message, routing_key)

@@ -4,7 +4,8 @@ import subprocess
 import shutil
 from common.KILogger import KILogger
 from ddm.DDM import SEFactory
-from ui.UserIF import DATA_HOME
+
+DATA_HOME = '/srv/nrckiclient/data'
 
 _logger = KILogger().getLogger("Actions")
 
@@ -69,17 +70,19 @@ def moveData(params, fileList, fromType, fromParams, toType, toParams):
         os.makedirs(tmphome)
 
     tmpout = []
+    tmpoutnames = []
     for f in fileList:
-        if ':' in f:
-            fname = f.split(':')[1]
-        elif '/' in f:
+        if '/' in f:
             fname = f.split('/')[-1]
+        elif ':' in f:
+            fname = f.split(':')[-1]
         else:
             fname = f
 
         tmpfile = os.path.join(tmphome, fname)
         fromSE.get(f, tmphome)
         tmpout.append(tmpfile)
+        tmpoutnames.append(fname)
 
 
     print 'Need compress? ' + str(compress)
@@ -92,6 +95,7 @@ def moveData(params, fileList, fromType, fromParams, toType, toParams):
         proc = subprocess.Popen(['/bin/bash'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc.communicate("tar -cvzf %s *" % tmpTgz)
         tmpout = [tmpTgz]
+        tmpoutnames = [tmpTgzName]
         os.chdir(wd)
         _logger.debug('Compress finish:')
 
@@ -100,4 +104,4 @@ def moveData(params, fileList, fromType, fromParams, toType, toParams):
         toSE.put(f, dest)
 
     shutil.rmtree(tmphome)
-    return (0, 'moveData success')
+    return 0, tmpoutnames

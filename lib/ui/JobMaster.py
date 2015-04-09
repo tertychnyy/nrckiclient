@@ -13,6 +13,11 @@ class JobMaster:
     def __init__(self):
         self.jobList = []
         self.fileList = []
+        self.dbname = ''
+        self.dbport = 0
+        self.dbtimeout = 0
+        self.dbuser = ''
+        self.dbpasswd = ''
 
     def putData(self, params=None, fileList=[], fromSEparams=None, toSEparams=None):
         return moveData(params=params, fileList=fileList, params1=fromSEparams, params2=toSEparams)
@@ -53,16 +58,20 @@ class JobMaster:
         _logger.debug(s)
         for x in o:
             _logger.debug("PandaID=%s" % x[0])
+        if isinstance( x[0], int ):
+            return x[0]
+        raise Exception("JobMaster.submitJobs() failed")
 
     def sendjob(self, data):
-        _logger.debug('SendJob with params: ' + ' '.join(params))
+
 
         datasetName = 'panda:panda.destDB.%s' % commands.getoutput('uuidgen')
         destName    = 'ANALY_RRC-KI-HPC'
         site = 'ANALY_RRC-KI-HPC'
         scope = 'user.ruslan'
 
-        executable = data['executable']
+        distributive = data['distributive']
+        release = data['release']
         parameters = data['parameters']
         input_type = data['input_type']
         input_params = data['input_params']
@@ -71,17 +80,13 @@ class JobMaster:
         output_params = data['output_params']
         output_files = data['output_files']
 
-        jparams = parameters
-
-        if not executable.startswith('/s/ls/users/poyda'):
-            _logger.error('Illegal distr name')
-            return
-
+        jobid = data['jobid']
+        _logger.debug('Jobid: ' + str(jobid))
 
         job = JobSpec()
         job.jobDefinitionID = int(time.time()) % 10000
         job.jobName = commands.getoutput('uuidgen')
-        job.transformation = executable
+        job.transformation = '/s/ls2/users/poyda/sw/run_wr.py'
         job.destinationDBlock = datasetName
         job.destinationSE = destName
         job.currentPriority = 1000
@@ -90,15 +95,24 @@ class JobMaster:
         job.cloud = 'RU'
         job.prodDBlock = "%s:%s.%s" % (scope, scope, job.jobName)
 
-        job.jobParameters = jparams
+        job.jobParameters = '%s %s %s' %(release, distributive, parameters)
 
-        fileIT = FileSpec()
-        fileIT.lfn = '%s.%s.input.tgz' % (scope, job.jobName)
-        fileIT.dataset = job.prodDBlock
-        fileIT.prodDBlock = job.prodDBlock
-        fileIT.type = 'input'
-        fileIT.scope = scope
-        job.addFile(fileIT)
+        params = {}
+        _logger.debug('MoveData')
+        ec = 0
+        ec, uploaded_input_files = self.putData(params=params, fileList=input_files, fromType=input_type, fromParams=input_params, toType='grid', toParams={'dest': job.prodDBlock})
+        if ec != 0:
+            _logger.error('Move data error: ' + ec[1])
+            return
+
+        for file in uploaded_input_files:
+            fileIT = FileSpec()
+            fileIT.lfn = file
+            fileIT.dataset = job.prodDBlock
+            fileIT.prodDBlock = job.prodDBlock
+            fileIT.type = 'input'
+            fileIT.scope = scope
+            job.addFile(fileIT)
 
         for file in output_files:
             fileOT = FileSpec()
@@ -121,16 +135,25 @@ class JobMaster:
         fileOL.scope = 'panda'
         job.addFile(fileOL)
 
-        params = {'compress': True,
-                  'tgzname': fileIT.lfn}
-        _logger.debug('MoveData')
-        ec = (0, '')
-        ec = self.putData(params=params, fileList=input_files, fromType=input_type, fromParams=input_params, toType='grid', toParams={'dest': fileIT.dataset})
-        if ec[0] != 0:
-            _logger.error('Move data error: ' + ec[1])
-            return
+
         self.jobList.append(job)
-        self.run()
+        pandaid = self.run()
+        if isinstance( pandaid, int ):
+            print "Try to update pandaid"
+            import MySQLdb
+            conn = MySQLdb.connect(host=self.dbhost, db=self.dbname,
+                                            port=self.dbport, connect_timeout=self.dbtimeout,
+                                            user=self.dbuser, passwd=self.dbpasswd)
+
+            cur = conn.cursor()
+
+            varDict = {}
+            varDict['jobid'] = jobid
+            varDict['pandaid'] = pandaid
+            sql = "UPDATE jobstable SET pandaid=:pandaid WHERE jobid=:jobid"
+
+            cur.execute(sql, varDict)
+
 
 
     def run(self):
@@ -141,6 +164,6 @@ class JobMaster:
             #jobs.append(self.getExecuteJob(job))
             #jobs.append(self.getStageOutJob(job))
 
-        self.submitJobs(self.jobList)
+        return self.submitJobs(self.jobList)
 
 
