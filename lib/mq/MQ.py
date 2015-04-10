@@ -1,5 +1,7 @@
 import pika
 import json
+from common.KILogger import KILogger
+_logger = KILogger().getLogger("MQ")
 
 
 class MQ:
@@ -113,12 +115,13 @@ class MQ:
                                routing_key=key)
 
         def callback(ch, method, properties, body):
-            print body
+            _logger.debug('startSendJobConsumer callback start')
             data = json.loads(body)
-            print 'data = ' + str(data)
+            _logger.debug('data = ' + str(data))
             JobMaster().sendjob(data)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
+            _logger.debug('startSendJobConsumer callback finish')
 
         channel.basic_qos(prefetch_count=1)
         channel.basic_consume(callback, queue=queue_name)

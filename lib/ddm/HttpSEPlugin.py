@@ -1,7 +1,7 @@
 import os
 from common.KILogger import KILogger
 
-_logger = KILogger().getLogger("HttpSEPlugin")
+_logger = KILogger().getLogger("DDM")
 
 class LocalSEPlugin():
     def __init__(self, params=None):

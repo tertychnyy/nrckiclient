@@ -1,40 +1,61 @@
 import os
+import ftplib
 from common.KILogger import KILogger
 
-_logger = KILogger().getLogger("HttpSEPlugin")
+_logger = KILogger().getLogger("DDM")
 
 class LocalSEPlugin():
     def __init__(self, params=None):
-        pass
+        self.anonymode = True
+        self.login = 'anonymous'
+        self.password = ''
+        if 'login' in params.keys() and 'password' in params.keys():
+            self.anonymode = False
+            self.login = params['login']
+            self.password = params['password']
 
     def get(self, url, dest):
+        _logger.debug('Try to get file from %s to %s' % (url, dest))
         try:
-            import urllib2
+            url = url.split('ftp://')[-1]
+            host = url.split('/')[0]
+            path = '/'.join(url.split('/')[1:-1])
+            fname = url.split('/')[-1]
+            destfile = os.path.join(dest, fname)
 
-            file_name = url.split('/')[-1]
-            u = urllib2.urlopen(url)
-            f = open(os.path.join(dest, file_name), 'wb')
-            meta = u.info()
-            file_size = int(meta.getheaders("Content-Length")[0])
-            print "Downloading: %s Bytes: %s" % (file_name, file_size)
+            ftp = self.connect(host, self.login, self.password)
+            ftp.cwd(path)
 
-            file_size_dl = 0
-            block_sz = 8192
-            while True:
-                buffer = u.read(block_sz)
-                if not buffer:
-                    break
-
-                file_size_dl += len(buffer)
-                f.write(buffer)
-                status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
-                status = status + chr(8)*(len(status)+1)
-                print status,
-
+            f = open(destfile, "wb")
+            ftp.retrbinary("RETR " + fname, f.write, 8*1024)
             f.close()
+
         except:
             _logger.error('Unable to download:%s to %s' % (url, dest))
 
 
     def put(self, src, dest):
-        pass
+        _logger.debug('Try to put file from %s to %s' % (src, dest))
+        try:
+            dest = dest.split('ftp://')[-1]
+            host = dest.split('/')[0]
+            path = '/'.join(dest.split('/')[1:])
+            fname = src.split('/')[-1]
+
+            ftp = self.connect(host, self.login, self.password)
+            ftp.cwd(path)
+
+            f = open(src, "wb")
+            ftp.storbinary("STOR " + fname, f)
+            f.close()
+
+        except:
+            _logger.error('Unable to download:%s to %s' % (url, dest))
+
+    def connect(self, host, login, password):
+        ftp = ftplib.FTP(host)
+        if self.anonymode:
+            ftp.login()
+        else:
+            ftp.login(login, password)
+        return ftp
