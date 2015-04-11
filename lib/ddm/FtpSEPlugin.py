@@ -50,7 +50,7 @@ class LocalSEPlugin():
             f.close()
 
         except:
-            _logger.error('Unable to download:%s to %s' % (url, dest))
+            _logger.error('Unable to download:%s to %s' % (src, dest))
 
     def connect(self, host, login, password):
         ftp = ftplib.FTP(host)
