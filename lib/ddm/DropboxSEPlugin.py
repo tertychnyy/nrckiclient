@@ -2,7 +2,7 @@ import dropbox
 import os
 from common.KILogger import KILogger
 
-_logger = KILogger().getLogger("DropboxSEPlugin")
+_logger = KILogger().getLogger("DDM")
 
 class DropboxSEPlugin():
     def __init__(self, params={}):
@@ -27,6 +27,7 @@ class DropboxSEPlugin():
         return dropbox.client.DropboxClient(auth_key)
 
     def get(self, src, dest):
+        _logger.debug('DROPBOX: Try to get file from %s to %s' % (src, dest))
         fname = src.split('/')[-1]
 
         #get file from dropbox to local se
@@ -37,6 +38,7 @@ class DropboxSEPlugin():
         _logger.debug('downloaded: ' + metadata)
 
     def put(self, src, dest):
+        _logger.debug('DROPBOX: Try to put file from %s to %s' % (src, dest))
         #put file from local se to dropbox
         f = open(src, 'rb')
         response = self.client.put_file(dest, f)

@@ -4,7 +4,7 @@ class SEFactory:
 
     def getSE(self, label, params={}):
         try:
-            if label not in ['dropbox', 'grid', 'local', 'http', 'ftp']:
+            if label not in ['dropbox', 'grid', 'local', 'http', 'ftp', 'hpc']:
                 raise AttributeError("Attribute 'label' error: Not found in list")
 
             if label == 'dropbox':
@@ -26,6 +26,10 @@ class SEFactory:
             elif label == 'ftp':
                 from ddm.FtpSEPlugin import FtpSEPlugin
                 se = FtpSEPlugin(params)
+
+            elif label == 'hpc':
+                from ddm.HPCSEPlugin import HPCSEPlugin
+                se = HPCSEPlugin(params)
 
             else:
                 se = SEPlugin()

@@ -8,6 +8,7 @@ class LocalSEPlugin():
         pass
 
     def get(self, url, dest):
+        _logger.debug('HTTP: Try to get file from %s to %s' % (url, dest))
         try:
             import urllib2
 
@@ -37,4 +38,5 @@ class LocalSEPlugin():
 
 
     def put(self, src, dest):
+        _logger.debug('HTTP: Try to put file from %s to %s' % (src, dest))
         pass

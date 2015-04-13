@@ -17,6 +17,7 @@ class GridSEPlugin():
         self.myenv = ast.literal_eval(env)
             
     def get(self, src, dest):
+        _logger.debug('RUCIO: Try to get file from %s to %s' % (src, dest))
         try:
             scope, fname = src.split(':')
                 
@@ -43,6 +44,7 @@ class GridSEPlugin():
             return (1, 'Error')
 
     def put(self, src, dest):
+        _logger.debug('RUCIO: Try to put file from %s to %s' % (src, dest))
         try:
             if os.path.isfile(src):
                 dataset = dest

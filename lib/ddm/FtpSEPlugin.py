@@ -15,7 +15,7 @@ class LocalSEPlugin():
             self.password = params['password']
 
     def get(self, url, dest):
-        _logger.debug('Try to get file from %s to %s' % (url, dest))
+        _logger.debug('FTP: Try to get file from %s to %s' % (url, dest))
         try:
             url = url.split('ftp://')[-1]
             host = url.split('/')[0]
@@ -35,7 +35,7 @@ class LocalSEPlugin():
 
 
     def put(self, src, dest):
-        _logger.debug('Try to put file from %s to %s' % (src, dest))
+        _logger.debug('FTP: Try to put file from %s to %s' % (src, dest))
         try:
             dest = dest.split('ftp://')[-1]
             host = dest.split('/')[0]
