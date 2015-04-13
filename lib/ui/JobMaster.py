@@ -18,6 +18,8 @@ class JobMaster:
         self.dbtimeout = 0
         self.dbuser = ''
         self.dbpasswd = ''
+        self.table_jobs = 'launcher_job'
+
 
     def putData(self, params=None, fileList=[], fromSEparams=None, toSEparams=None):
         return moveData(params=params, fileList=fileList, params1=fromSEparams, params2=toSEparams)
@@ -56,15 +58,12 @@ class JobMaster:
         s,o = Client.submitJobs(jobList)
         _logger.debug("---------------------")
         _logger.debug(s)
+
         for x in o:
             _logger.debug("PandaID=%s" % x[0])
-        if isinstance( x[0], int ):
-            return x[0]
-        raise Exception("JobMaster.submitJobs() failed")
+        return o
 
     def sendjob(self, data):
-
-
         datasetName = 'panda:panda.destDB.%s' % commands.getoutput('uuidgen')
         destName    = 'ANALY_RRC-KI-HPC'
         site = 'ANALY_RRC-KI-HPC'
@@ -137,23 +136,32 @@ class JobMaster:
 
 
         self.jobList.append(job)
-        pandaid = self.run()
-        if isinstance( pandaid, int ):
-            print "Try to update pandaid"
-            import MySQLdb
-            conn = MySQLdb.connect(host=self.dbhost, db=self.dbname,
-                                            port=self.dbport, connect_timeout=self.dbtimeout,
-                                            user=self.dbuser, passwd=self.dbpasswd)
+        o = self.run()
 
-            cur = conn.cursor()
-
+        x = o[0]
+        import MySQLdb
+        conn = MySQLdb.connect(host=self.dbhost, db=self.dbname,
+                                        port=self.dbport, connect_timeout=self.dbtimeout,
+                                        user=self.dbuser, passwd=self.dbpasswd)
+        cur = conn.cursor()
+        try:
             varDict = {}
-            varDict['jobid'] = jobid
-            varDict['pandaid'] = pandaid
-            sql = "UPDATE jobstable SET pandaid=:pandaid WHERE jobid=:jobid"
+            PandaID = int(x[0])
+            varDict['id'] = jobid
+            varDict['pandaId'] = PandaID
 
+            sql = "UPDATE %s SET %s.pandaId=%s WHERE %s.id=%s" % (self.table_jobs, self.table_jobs, varDict['id'], self.table_jobs, varDict['pandaId'])
             cur.execute(sql, varDict)
 
+
+        except:
+            _logger.error('SENDJOB: Incorrect server response')
+        try:
+            conn.commit()
+            return True
+        except:
+            _logger.error("commit error")
+            return False
 
 
     def run(self):

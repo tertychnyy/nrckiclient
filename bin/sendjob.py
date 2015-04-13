@@ -2,7 +2,7 @@ import sys
 from ui.UserIF import userIF
 from common.KILogger import KILogger
 
-_logger = KILogger().getLogger("comsumer")
+_logger = KILogger().getLogger("consumer")
 
 if __name__=='__main__':
     _logger.debug('cmd: ' + str(sys.argv[1:]))
