@@ -6,10 +6,10 @@ _logger = KILogger().getLogger("DDM")
 
 class HPCSEPlugin():
     def __init__(self, params=None):
-        self.key = '~/.ssh/sk_poyda_rsa'
-        self.host = 'ui2.computing.kiae.ru'
-        self.user = 'poyda'
-        self.datadir = '/s/ls2/users/poyda/data'
+        self.key = ''
+        self.host = ''
+        self.user = ''
+        self.datadir = ''
 
     def get(self, src, dest):
         _logger.debug('HPC: Try to get file from %s to %s' % (src, dest))
