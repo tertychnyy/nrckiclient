@@ -1,9 +1,9 @@
 import os
 import sys
 import time
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 from mq.MQ import MQ
-_logger = KILogger().getLogger("comsumer")
+_logger = NrckiLogger().getLogger("comsumer")
 
 if __name__ == '__main__':
 

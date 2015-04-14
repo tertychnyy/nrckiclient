@@ -1,8 +1,8 @@
 import os
 import ftplib
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 
-_logger = KILogger().getLogger("DDM")
+_logger = NrckiLogger().getLogger("DDM")
 
 class LocalSEPlugin():
     def __init__(self, params=None):

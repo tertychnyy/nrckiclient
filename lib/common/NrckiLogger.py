@@ -4,7 +4,7 @@ import logging
 # setup logger
 _formatter = logging.Formatter('%(asctime)s %(name)-12s: %(levelname)-8s %(message)s')
 
-class KILogger:
+class NrckiLogger:
     def __init__(self):
         self.logdir = "/srv/nrckiclient/log"
 

@@ -1,8 +1,8 @@
 import dropbox
 import os
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 
-_logger = KILogger().getLogger("DDM")
+_logger = NrckiLogger().getLogger("DDM")
 
 class DropboxSEPlugin():
     def __init__(self, params={}):

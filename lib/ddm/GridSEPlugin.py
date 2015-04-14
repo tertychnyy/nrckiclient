@@ -1,10 +1,10 @@
 import os
 import subprocess
 import errno
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 from common.utils import adler32
 
-_logger = KILogger().getLogger("GridSEPlugin")
+_logger = NrckiLogger().getLogger("GridSEPlugin")
 BIN_HOME = '/srv/nrckiclient'
 
 class GridSEPlugin():

@@ -2,16 +2,12 @@ import commands
 import os
 import subprocess
 import shutil
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 from ddm.DDM import SEFactory
 
 DATA_HOME = '/srv/nrckiclient/data'
 
-_logger = KILogger().getLogger("Actions")
-
-def getSEFactory():
-    factory = SEFactory()
-    return factory
+_logger = NrckiLogger().getLogger("Actions")
 
 def moveData(params, fileList, fromType, fromParams, toType, toParams):
     if len(fileList) == 0:
@@ -31,7 +27,7 @@ def moveData(params, fileList, fromType, fromParams, toType, toParams):
         return (1, 'Attribute error: dest')
     dest = toParams['dest']
 
-    sefactory = getSEFactory()
+    sefactory = SEFactory()
     fromSE = sefactory.getSE(fromType, fromParams)
     toSE = sefactory.getSE(toType, toParams)
 

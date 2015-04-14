@@ -1,7 +1,7 @@
 import pika
 import json
-from common.KILogger import KILogger
-_logger = KILogger().getLogger("MQ")
+from common.NrckiLogger import NrckiLogger
+_logger = NrckiLogger().getLogger("MQ")
 
 
 class MQ:
@@ -54,7 +54,7 @@ class MQ:
             _logger.debug('startSendJobConsumer callback start')
             data = json.loads(body)
             _logger.debug('data = ' + str(data))
-            JobMaster().sendjob(data)
+            JobMaster().run(data)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
             _logger.debug('startSendJobConsumer callback finish')

@@ -4,9 +4,6 @@ class SEFactory:
 
     def getSE(self, label, params={}):
         try:
-            if label not in ['dropbox', 'grid', 'local', 'http', 'ftp', 'hpc']:
-                raise AttributeError("Attribute 'label' error: Not found in list")
-
             if label == 'dropbox':
                 from ddm.DropboxSEPlugin import DropboxSEPlugin
                 se = DropboxSEPlugin(params)

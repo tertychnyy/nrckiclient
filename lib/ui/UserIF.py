@@ -1,6 +1,6 @@
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 
-_logger = KILogger().getLogger("UserIF")
+_logger = NrckiLogger().getLogger("UserIF")
 
 class UserIF:
     def __init__(self):

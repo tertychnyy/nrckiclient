@@ -2,9 +2,9 @@ import os
 import time
 import sys
 import shutil
-from common.KILogger import KILogger
+from common.NrckiLogger import NrckiLogger
 
-_logger = KILogger().getLogger("LocalSEPlugin")
+_logger = NrckiLogger().getLogger("LocalSEPlugin")
 
 class LocalSEPlugin():
     def __init__(self, params={}):
