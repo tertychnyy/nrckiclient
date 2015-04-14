@@ -99,7 +99,7 @@ class JobMaster:
         params = {}
         _logger.debug('MoveData')
         ec = 0
-        ec, uploaded_input_files = self.putData(params=params, fileList=input_files, fromType=input_type, fromParams=input_params, toType='hpc', toParams={'dest': job.prodDBlock})
+        ec, uploaded_input_files = self.putData(params=params, fileList=input_files, fromType=input_type, fromParams=input_params, toType='hpc', toParams={'dest': scope + '/' + job.prodDBlock})
         if ec != 0:
             _logger.error('Move data error: ' + ec[1])
             return
