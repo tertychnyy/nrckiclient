@@ -1,6 +1,4 @@
 import os
-import time
-import sys
 import shutil
 from common.NrckiLogger import NrckiLogger
 
@@ -14,7 +12,7 @@ class LocalSEPlugin():
         _logger.debug('LOCAL: Try to get file from %s to %s' % (src, dest))
         try:
             if not os.path.isfile(src):
-                _logger.error("%s: File not found" %src)
+                _logger.error("%s: File not found" % src)
 
             shutil.copy2(src, dest)
         except:
@@ -24,7 +22,7 @@ class LocalSEPlugin():
     def put(self, src, dest):
         _logger.debug('LOCAL: Try to put file from %s to %s' % (src, dest))
         if not os.path.isfile(src):
-            _logger.error("%s: File not found" %src)
+            _logger.error("%s: File not found" % src)
 
         self.get(src, dest)
         shutil.rmtree(os.path.join(src.split('/')[:-1]))

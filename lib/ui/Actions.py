@@ -9,10 +9,11 @@ DATA_HOME = '/srv/nrckiclient/data'
 
 _logger = NrckiLogger().getLogger("Actions")
 
-def moveData(params, fileList, fromType, fromParams, toType, toParams):
+
+def movedata(params, fileList, fromType, fromParams, toType, toParams):
     if len(fileList) == 0:
         _logger.debug('No files to move')
-        return (0, 'No files to move')
+        return 0, 'No files to move'
 
     tmpdir = commands.getoutput("uuidgen")
 
@@ -24,7 +25,7 @@ def moveData(params, fileList, fromType, fromParams, toType, toParams):
 
     if 'dest' not in toParams.keys():
         _logger.error('Attribute error: dest')
-        return (1, 'Attribute error: dest')
+        return 1, 'Attribute error: dest'
     dest = toParams['dest']
 
     sefactory = SEFactory()

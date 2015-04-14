@@ -4,7 +4,7 @@ import re
 from taskbuffer.JobSpec import JobSpec
 from taskbuffer.FileSpec import FileSpec
 from common.NrckiLogger import NrckiLogger
-from ui.Actions import moveData
+from ui.Actions import movedata
 import userinterface.Client as Client
 import MySQLdb
 _logger = NrckiLogger().getLogger("JobMaster")
@@ -69,7 +69,7 @@ class JobMaster:
         params = {}
         _logger.debug('MoveData')
         ec = 0
-        ec, uploaded_input_files = moveData(params=params, fileList=input_files, fromType=input_type, fromParams=input_params, toType='hpc', toParams={'dest': re.sub(':', '/', job.prodDBlock)})
+        ec, uploaded_input_files = movedata(params=params, fileList=input_files, fromType=input_type, fromParams=input_params, toType='hpc', toParams={'dest': re.sub(':', '/', job.prodDBlock)})
         if ec != 0:
             _logger.error('Move data error: ' + ec[1])
             return

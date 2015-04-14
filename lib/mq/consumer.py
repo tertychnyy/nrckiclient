@@ -1,6 +1,4 @@
-import os
 import sys
-import time
 from common.NrckiLogger import NrckiLogger
 from mq.MQ import MQ
 _logger = NrckiLogger().getLogger("comsumer")

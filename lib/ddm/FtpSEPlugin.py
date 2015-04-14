@@ -4,7 +4,7 @@ from common.NrckiLogger import NrckiLogger
 
 _logger = NrckiLogger().getLogger("DDM")
 
-class LocalSEPlugin():
+class FtpSEPlugin():
     def __init__(self, params=None):
         self.anonymode = True
         self.login = 'anonymous'

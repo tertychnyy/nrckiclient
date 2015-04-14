@@ -3,7 +3,7 @@ from common.NrckiLogger import NrckiLogger
 
 _logger = NrckiLogger().getLogger("DDM")
 
-class LocalSEPlugin():
+class HttpSEPlugin():
     def __init__(self, params=None):
         pass
 
