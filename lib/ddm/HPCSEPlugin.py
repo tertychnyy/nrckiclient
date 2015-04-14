@@ -35,11 +35,3 @@ class HPCSEPlugin():
 
         except:
             _logger.error('Unable to download:%s to %s' % (src, dest))
-
-    def connect(self, host, login, password):
-        ftp = ftplib.FTP(host)
-        if self.anonymode:
-            ftp.login()
-        else:
-            ftp.login(login, password)
-        return ftp

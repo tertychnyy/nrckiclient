@@ -5,6 +5,7 @@ from common.KILogger import KILogger
 from common.utils import adler32
 
 _logger = KILogger().getLogger("GridSEPlugin")
+BIN_HOME = '/srv/nrckiclient'
 
 class GridSEPlugin():
     def __init__(self, params={}):

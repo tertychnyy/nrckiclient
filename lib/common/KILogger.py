@@ -1,19 +1,18 @@
+import os
 import logging
 
 # setup logger
 _formatter = logging.Formatter('%(asctime)s %(name)-12s: %(levelname)-8s %(message)s')
 
-logdir = "/srv/nrckiclient/log"
-
 class KILogger:
     def __init__(self):
-        pass
+        self.logdir = "/srv/nrckiclient/log"
 
-    def getLogger(self, lognm):
-        logh = logging.getLogger("nrckiclient.log.%s" % lognm)
-        txth = logging.FileHandler('%s/nrckiclient-%s.log' % (logdir, lognm))
-        txth.setLevel(logging.DEBUG)
-        txth.setFormatter(_formatter)
-        logh.addHandler(txth)
-        return logh
-
+    def getLogger(self, name):
+        _logger = logging.getLogger(name)
+        hdlr = logging.FileHandler(os.path.join(self.logdir, 'nrcki-%s.log' % name))
+        formatter = logging.Formatter('%(asctime)s %(name)s [%(levelname)s]: %(message)s')
+        hdlr.setFormatter(formatter)
+        _logger.addHandler(hdlr)
+        _logger.setLevel(logging.DEBUG)
+        return _logger
