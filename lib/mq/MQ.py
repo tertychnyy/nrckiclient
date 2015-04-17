@@ -55,9 +55,8 @@ class MQ:
             data = json.loads(body)
             _logger.debug('data = ' + str(data))
             JobMaster().run(data)
-
-            ch.basic_ack(delivery_tag=method.delivery_tag)
             _logger.debug('startSendJobConsumer callback finish')
+            ch.basic_ack(delivery_tag=method.delivery_tag)
 
         channel.basic_qos(prefetch_count=1)
         channel.basic_consume(callback, queue=queue_name)

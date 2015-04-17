@@ -2,7 +2,7 @@ import os
 import shutil
 from common.NrckiLogger import NrckiLogger
 
-_logger = NrckiLogger().getLogger("LocalSEPlugin")
+_logger = NrckiLogger().getLogger("DDM")
 
 class LocalSEPlugin():
     def __init__(self, params={}):
